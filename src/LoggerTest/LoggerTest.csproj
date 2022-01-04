@@ -2,10 +2,6 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
-
-		<!-- Set this to true to show the generated files. -->
-		<EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,11 +12,11 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<!--<ProjectReference Include="..\Purview.Logging.SourceGenerator\Purview.Logging.SourceGenerator.csproj" 
+		<ProjectReference Include="..\Purview.Logging.SourceGenerator\Purview.Logging.SourceGenerator.csproj" 
 											OutputItemType="Analyzer" 
-											ReferenceOutputAssembly="false" />-->
+											ReferenceOutputAssembly="false" />
 		
-		<PackageReference Include="Purview.Logging.SourceGenerator" Version="0.8.1-prerelease" />
+		<!--<PackageReference Include="Purview.Logging.SourceGenerator" Version="0.8.1-prerelease" />-->
 	</ItemGroup>
 	
 </Project>

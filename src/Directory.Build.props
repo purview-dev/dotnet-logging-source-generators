@@ -1,11 +1,16 @@
 <Project>
 
 	<PropertyGroup Label="Project Defaults">
-		
+
+		<TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>10.0</LangVersion>
-	
+		<IsPackable>false</IsPackable>
+
+		<!-- Set this to true to show the generated files. -->
+		<EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
 		<AnalysisLevel>5</AnalysisLevel>
@@ -13,18 +18,38 @@
 		<NoWarn>IDE0011;$(NoWarn)</NoWarn>
 		<NoWarn>CS1591;$(NoWarn)</NoWarn>
 		<NoWarn>CA1014;CA1848;CA2201;CA2234;CA2225;CA2254;$(NoWarn)</NoWarn>
-		<!--<NoWarn>RCS1090;RCS1108;RCS1196;$(NoWarn)</NoWarn>-->
 	
 	</PropertyGroup>
 
-	<PropertyGroup Label="NuGet Defaults">
+	<PropertyGroup Label="Source Generator PropertyGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('.SourceGenerator'))">
 
-    <Authors>Kieron Lanning</Authors>
-    <Company>KJL Solutions Ltd.</Company>
-    <PackageProjectUrl>https://kjl.dev/</PackageProjectUrl>
-    <PackageIcon>Purview-Icon-128x128.png</PackageIcon>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<IsPackable>true</IsPackable>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+
+		<RepositoryUrl>https://github.com/purview-dev/dotnet-logging-source-generators</RepositoryUrl>
+		<PackageTags>logging;source-generator;high-performance-logging;dotnet;aspnet</PackageTags>
+
+		<NoWarn>IDE0057;$(NoWarn)</NoWarn>
+
+	</PropertyGroup>
+
+	<ItemGroup Label="Source Generator ItemGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('.SourceGenerator'))">
 	
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="../.build/Purview-Icon-128x128.png" Pack="true" PackagePath="" />
+		<None Include="bin/" Visible="false" />
+
+	</ItemGroup>
+
+	<PropertyGroup Label="NuGet Defaults" Condition="'$(IsPackable)' == 'true'">
+
+		<Authors>Kieron Lanning</Authors>
+		<Company>KJL Solutions Ltd.</Company>
+		<PackageProjectUrl>https://kjl.dev/</PackageProjectUrl>
+		<PackageIcon>Purview-Icon-128x128.png</PackageIcon>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+
 	</PropertyGroup>
 
 </Project>
