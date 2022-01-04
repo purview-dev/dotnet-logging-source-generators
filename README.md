@@ -5,7 +5,7 @@
 The interface-based approach has a few key benefits:
 
 * allows better testing through the use of mocks and assertions in your tests
-* interfaces and their methods are also more readable than  `LogXXX` and strings.
+* interfaces and their methods are also more readable than `LogXXX` and strings.
 * natively supports DI.
 
 ## How to
@@ -51,7 +51,7 @@ public interface IBasicLogger
 }
 ```
 
-Notice here we're also using `IDisposable` for [scoped]([Logging in .NET | Microsoft Docs](https://docs.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line#log-scopes))-supported logging.
+Notice here we're also using `IDisposable` for [scoped](https://docs.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line#log-scopes)-supported logging.
 
 ### Register with DI
 
@@ -81,7 +81,7 @@ using (logger.BeginProcessing(contextId))
 		Payload = "abc123"
 	});
 	
-    // Completed...
+    	// Completed...
 	logger.CompletedProcessing(TimeSpan.FromSeconds(1.1));
 
 	try
