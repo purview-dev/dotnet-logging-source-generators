@@ -5,7 +5,7 @@
 The interface-based approach has a few key benefits:
 
 * allows better testing through the use of mocks and assertions in your tests
-* interfaces are also more readable than generate `LogXXX` and strings.
+* interfaces and their methods are also more readable than  `LogXXX` and strings.
 * natively supports DI.
 
 ## How to
@@ -14,10 +14,7 @@ Reference the source generator in your CSPROJ file:
 
 ```xml
 <ItemGroup>
-	<PackageReference Include="Purview.Logging.SourceGenerator"
-					Versions="1.0.0"
-    				 OutputItemType="Analyzer"
-    				 ReferenceOutputAssembly="false" />
+	<PackageReference Include="Purview.Logging.SourceGenerator" Version="0.8.1-prerelease" />
 </ItemGroup>
 ```
 
@@ -25,13 +22,13 @@ Reference the source generator in your CSPROJ file:
 
 Create an interface (public or internal), make sure the name ends with any of the following (case-sensitive):
 
-* Log
-* Logs
-* Logger
+* `Log`
+* `Logs`
+* `Logger`
 
 Call `services.AddLog<TInterfaceType>()` on your DI registration and you're good to go! Inject or resolve as you see fit.
 
-Currently you must have the `Microsoft.Extensions.DepdencyInjection` and `Microsoft.Extensions.Logging` packages installed.
+Currently you must have the `Microsoft.Extensions.DepdencyInjection` and `Microsoft.Extensions.Logging` packages installed along with the `Purview.Logging.SourceGenerator` package.
 
 ## Quick demo:
 
@@ -66,6 +63,8 @@ services.AddLog<ITestLogger>() // this is an auto-generated extension method.
 
 ```c#
 // inject or resolve the IBasicLogger.
+
+IBasicLogger logger = ...;
 
 var contextId = Guid.NewGuid();
 using (logger.BeginProcessing(contextId))
@@ -164,5 +163,7 @@ partial class ImportantLoggerCore
 ## Notes
 
 This project is very early days - code is very messy at the moment, and it doesn't have much in the way of testing currently. All this is in-part because Source Generators in incredibly hard to debug currently. As I get time, I'll improve the codebase and testability of the whole project.
+
+There is a demo project. It's a bit of a mish-mash at the moment... I'll tidy it up later!
 
 The history of this project was a little interesting, I've been doing this for years, but using C# generated at runtime and creating a dynamic assembly to enable this behaviour. Using Source Generators was a natural step forward.
