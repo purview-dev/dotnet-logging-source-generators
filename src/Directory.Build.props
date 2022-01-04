@@ -1,0 +1,30 @@
+<Project>
+
+	<PropertyGroup Label="Project Defaults">
+		
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>10.0</LangVersion>
+	
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
+		<AnalysisLevel>5</AnalysisLevel>
+
+		<NoWarn>IDE0011;$(NoWarn)</NoWarn>
+		<NoWarn>CS1591;$(NoWarn)</NoWarn>
+		<NoWarn>CA1014;CA1848;CA2201;CA2234;CA2225;CA2254;$(NoWarn)</NoWarn>
+		<!--<NoWarn>RCS1090;RCS1108;RCS1196;$(NoWarn)</NoWarn>-->
+	
+	</PropertyGroup>
+
+	<PropertyGroup Label="NuGet Defaults">
+
+    <Authors>Kieron Lanning</Authors>
+    <Company>KJL Solutions Ltd.</Company>
+    <PackageProjectUrl>https://kjl.dev/</PackageProjectUrl>
+    <PackageIcon>Purview-Icon-128x128.png</PackageIcon>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	
+	</PropertyGroup>
+
+</Project>
