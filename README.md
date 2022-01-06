@@ -14,7 +14,7 @@ Reference the source generator in your CSPROJ file:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.8.2-prerelease" />
+  <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.8.3-prerelease" />
 </ItemGroup>
 ```
 
