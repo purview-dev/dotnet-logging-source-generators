@@ -57,12 +57,8 @@ static class LoggerSettingsParser
 
 			if (argName == "Id")
 			{
-				if (value.Value is int id)
-				{
+				if (value.Value is int id && id > 0)
 					eventId = id;
-					if (id == 0)
-						eventId = null;
-				}
 			}
 			else if (argName == "Name")
 			{

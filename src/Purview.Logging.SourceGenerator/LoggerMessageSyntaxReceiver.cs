@@ -9,14 +9,14 @@ sealed class LoggerMessageSyntaxReceiver : ISyntaxReceiver
 
 	List<InterfaceDeclarationSyntax>? _candidateInterfaces;
 
-	public List<InterfaceDeclarationSyntax>? CandidateInterfaces => _candidateInterfaces;
+	public IEnumerable<InterfaceDeclarationSyntax>? CandidateInterfaces => _candidateInterfaces;
 
 	public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
 	{
 		// Only classes
 		if (syntaxNode is InterfaceDeclarationSyntax interfaceDeclaration)
 		{
-			if (!_suffixes.Any(a => interfaceDeclaration.Identifier.ValueText.EndsWith(a, StringComparison.Ordinal)))
+			if (!_suffixes.Any(suffix => interfaceDeclaration.Identifier.ValueText.EndsWith(suffix, StringComparison.Ordinal)))
 				return;
 
 			// Match add to candidates

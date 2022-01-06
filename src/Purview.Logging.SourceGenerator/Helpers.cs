@@ -74,7 +74,7 @@ namespace {MSLoggingNamespace}
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
-		// If we include the attributes in all referenced assemblies, we don't need to dyanmically parse and add...
+		// If we include the attributes in all referenced assemblies, we don't need to dynamically parse it...
 		return context.Compilation.GetTypeByMetadataName($"{MSLoggingNamespace}.{attributeTypeName}");
 
 		//var options = (context.Compilation as CSharpCompilation)?.SyntaxTrees[0].Options as CSharpParseOptions;

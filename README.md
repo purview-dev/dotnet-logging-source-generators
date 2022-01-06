@@ -134,12 +134,12 @@ static IProcessingServiceLogs CreateLogs()
 
 By default each assembly where a logging interface is defined get two attributes generated that can be used to control the log event:
 
-1. `DefaultLogLevelAttribute` - use on an interface to control the default log level - system-wide, the default is `Information`.
-2. `LogEventAttributte` - use to configure individual log events, including their Event Id, Event Name, Log Level and Message Template.
+1. `DefaultLogLevelAttribute` - use on an interface to control the default log level for all events on that interface, or as an assembly attribute to control the default for all log events within an assembly. If declared on both, the one on the interface takes precedence.
+2. `LogEventAttributte` - use to configure individual log events, including their Event Id, Event Name, Log Level and Message Template. If the level is specified, this will overwrite any defined by the `DefaultLogLevelAttribute`.
 
-I was hoping to get the `DefaultLogLevelAttribute` working as an  `assembly` attribute too to define the default at the assembly level, but haven't find a way of making this work yet so for now it's on a per-interface basis.
+If no log level is defined (via the `LogEventAttribute`) and the method contains an `Exception` parameter, the level is automatically set to `Error` regardless of other defaults. 
 
-If no log level is defined (via the `LogEventAttribute`) and the method contains an `Exception` parameter, the level is automatically set to `Error`. That parameter is also passed to the `Exception` parameter of the `Define` method of the `LoggerMessage`. 
+The exception is also passed to the `Exception` parameter of the `Define` method from the `LoggerMessage` class. 
 
 ## Extensions
 

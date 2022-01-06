@@ -9,22 +9,38 @@ namespace Purview.Logging.SourceGenerator;
 [Generator]
 sealed class LoggerMessageBasedGenerator : ISourceGenerator
 {
+	string _defaultLevel = Helpers.DefaultLogLevel;
+
 	public void Initialize(GeneratorInitializationContext context)
 	{
-		context.RegisterForPostInitialization(a =>
-		{
-			a.AddSource("_LoggerGenAttributes.cs", Helpers.AttributeDefinitions);
-		});
+		context.RegisterForPostInitialization(context => context.AddSource("_LoggerGenAttributes.cs", Helpers.AttributeDefinitions));
 		context.RegisterForSyntaxNotifications(() => new LoggerMessageSyntaxReceiver());
 	}
 
 	public void Execute(GeneratorExecutionContext context)
 	{
 		var receiver = context.SyntaxReceiver as LoggerMessageSyntaxReceiver;
-		if ((receiver?.CandidateInterfaces?.Count ?? 0) == 0)
+		if ((receiver?.CandidateInterfaces?.Count() ?? 0) == 0)
 		{
 			// nothing to do yet
 			return;
+		}
+
+		// Attempt to find a default log level defined in the assembly.
+		var defaultLogLevelAttribute = context.Compilation.Assembly
+			.GetAttributes()
+			.FirstOrDefault(attributeData =>
+			{
+				var name = attributeData.AttributeClass?.ToString();
+				return name == $"{Helpers.MSLoggingNamespace}.{Helpers.PurviewDefaultLogLevelAttributeName}"
+					|| name == $"{Helpers.MSLoggingNamespace}.{Helpers.PurviewDefaultLogLevelAttributeNameWithSuffix}";
+			});
+
+		if (defaultLogLevelAttribute is not null)
+		{
+			var defaultLevelArg = defaultLogLevelAttribute.ConstructorArguments.FirstOrDefault().Value as int?;
+			if (defaultLevelArg.HasValue && Helpers.LogLevelValuesToNames.ContainsKey(defaultLevelArg.Value))
+				_defaultLevel = Helpers.LogLevelValuesToNames[defaultLevelArg.Value];
 		}
 
 		foreach (var interfaceDeclaration in receiver!.CandidateInterfaces!)
@@ -48,7 +64,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		}
 	}
 
-	static (string source, string path, string interfaceName, string className, string? @namespace) GenerateSource(InterfaceDeclarationSyntax interfaceDeclaration, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
+	(string source, string path, string interfaceName, string className, string? @namespace) GenerateSource(InterfaceDeclarationSyntax interfaceDeclaration, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
 	{
 		var defaultLevel = GetDefaultLevel(interfaceDeclaration, context, cancellationToken);
 
@@ -182,13 +198,13 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		return (source: builder.ToString(), path: namespacePrefix + classDefinitionName, interfaceName: loggerInterfaceName, className: classDefinitionName, @namespace: namespacePrefix);
 	}
 
-	static string GetDefaultLevel(InterfaceDeclarationSyntax interfaceDeclaration, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
+	string GetDefaultLevel(InterfaceDeclarationSyntax interfaceDeclaration, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
 	{
 		var defaultLogEventAttribute = Helpers.GetAttributeSymbol(Helpers.PurviewDefaultLogLevelAttributeNameWithSuffix, context, cancellationToken);
 		if (defaultLogEventAttribute == null)
 		{
 			// Attribute not defined.
-			return Helpers.DefaultLogLevel;
+			return _defaultLevel;
 		}
 
 		var model = context.Compilation.GetSemanticModel(interfaceDeclaration.SyntaxTree);
@@ -196,7 +212,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		if (declaredSymbol == null)
 		{
 			// This doesn't sound good...
-			return Helpers.DefaultLogLevel;
+			return _defaultLevel;
 		}
 
 		var attribute = declaredSymbol.GetAttributes().SingleOrDefault(m =>
@@ -204,13 +220,13 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			m.AttributeClass?.Name == Helpers.PurviewDefaultLogLevelAttributeNameWithSuffix);
 
 		if (attribute == null)
-			return Helpers.DefaultLogLevel;
+			return _defaultLevel;
 
 		if (attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken) is not AttributeSyntax attributeSyntax)
-			return Helpers.DefaultLogLevel;
+			return _defaultLevel;
 
 		if (attributeSyntax.ArgumentList?.Arguments.Count == 0)
-			return Helpers.DefaultLogLevel;
+			return _defaultLevel;
 
 		var args = attributeSyntax.ArgumentList!.Arguments;
 		foreach (var arg in args)
@@ -223,10 +239,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 				return Helpers.LogLevelValuesToNames[id];
 		}
 
-		// At this point, we haven't found one... can we find one at the attribute level?
-		// TODO: Read assembly...
-
-		return Helpers.DefaultLogLevel;
+		return _defaultLevel;
 	}
 
 	static string GetClassName(InterfaceDeclarationSyntax interfaceDeclaration)

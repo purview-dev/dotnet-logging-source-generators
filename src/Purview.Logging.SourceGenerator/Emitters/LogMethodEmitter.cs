@@ -48,7 +48,6 @@ sealed partial class LogMethodEmitter
 		}
 
 		// If there are multiple exceptions defined, should be put up a warning?
-
 		var methodName = _methodDeclaration.Identifier.ToString();
 		var paramsWithoutException = parameterData.ToArray();
 
