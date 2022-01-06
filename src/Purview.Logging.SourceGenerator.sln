@@ -9,8 +9,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Purview.Logging.SourceGener
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F620BFB7-12B3-41AC-9908-BBAF5E699AC4}"
 	ProjectSection(SolutionItems) = preProject
+		build.cmd = build.cmd
 		Directory.Build.props = Directory.Build.props
+		global.json = global.json
+		..\README.md = ..\README.md
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoService", "DemoService\DemoService.csproj", "{9DA18D3F-11CB-49D3-98A1-ED722DAF8356}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoService.UnitTests", "DemoService.UnitTests\DemoService.UnitTests.csproj", "{9B1784F2-B11D-4FCD-AA6D-BA7D8EA00701}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +33,14 @@ Global
 		{F43D6BD7-AA19-46F0-9904-73F8DFAD5CD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F43D6BD7-AA19-46F0-9904-73F8DFAD5CD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F43D6BD7-AA19-46F0-9904-73F8DFAD5CD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DA18D3F-11CB-49D3-98A1-ED722DAF8356}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DA18D3F-11CB-49D3-98A1-ED722DAF8356}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DA18D3F-11CB-49D3-98A1-ED722DAF8356}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DA18D3F-11CB-49D3-98A1-ED722DAF8356}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B1784F2-B11D-4FCD-AA6D-BA7D8EA00701}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B1784F2-B11D-4FCD-AA6D-BA7D8EA00701}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B1784F2-B11D-4FCD-AA6D-BA7D8EA00701}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B1784F2-B11D-4FCD-AA6D-BA7D8EA00701}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

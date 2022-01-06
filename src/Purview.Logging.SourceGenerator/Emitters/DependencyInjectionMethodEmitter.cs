@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Logger.Gen;
+namespace Purview.Logging.SourceGenerator.Emitters;
 
 sealed class DependencyInjectionMethodEmitter
 {
@@ -21,7 +21,7 @@ sealed class DependencyInjectionMethodEmitter
 	{
 		StringBuilder builder = new();
 
-		// Start namespace.
+		// Start namespace (full-scoped, not file-scoped).
 		builder
 			.AppendLine("namespace Microsoft.Extensions.DependencyInjection")
 			.AppendLine("{");
@@ -38,13 +38,14 @@ sealed class DependencyInjectionMethodEmitter
 
 		builder
 			.Append(" partial class ")
-			.AppendLine(_className)
+			.Append(_className)
+			.AppendLine("Extensions")
 			.AppendLine("{");
 
 		// Start method.
 		builder
 			.AppendLine("static public IServiceCollection AddLog<T>(this IServiceCollection services)")
-			.AppendLine("where T : ")
+			.Append("where T : ")
 			.Append(_namespace)
 			.AppendLine(_interfaceName)
 			.AppendLine("{");

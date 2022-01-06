@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace LoggerTest;
+namespace LoggerTest.Interfaces;
 
 [DefaultLogLevel(LogLevel.Critical)]
 public interface IFileScopedNSTestLogger

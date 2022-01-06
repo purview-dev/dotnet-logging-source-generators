@@ -1,8 +1,7 @@
-﻿#pragma warning disable IDE0161 // Convert to file-scoped namespace
-using System.Reflection.Emit;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
-namespace LoggerTest
+#pragma warning disable IDE0161 // Convert to file-scoped namespace
+namespace LoggerTest.Interfaces
 #pragma warning restore IDE0161 // Convert to file-scoped namespace
 {
 	public interface IScopedTestLogger
