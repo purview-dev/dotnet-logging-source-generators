@@ -147,17 +147,17 @@ The generated classes are partial, and match the interfaces accessibility modifi
 
 It does mean you can extend the class if you really need too:
 
-```
+```c#
 public interface IImportantLogger {  }	// Your interface.
 
 public partial class ImportantLoggerCore : IImportantLogger {} // Generated logger.
 
 partial class ImportantLoggerCore 
 {
-	public void MyAdditionalMethod()
-	{
-	     // ... 
-	}
+  public void MyAdditionalMethod()
+  {
+    // ... 
+  }
 }
 ```
 
