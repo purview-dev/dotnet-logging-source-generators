@@ -7,8 +7,12 @@ namespace Purview.Logging.SourceGenerator;
 static class Helpers
 {
 	public const string MSLoggingNamespace = "Microsoft.Extensions.Logging";
+
 	public const string MSLoggingLogLevelTypeName = "LogLevel";
 	public const string MSLoggingLogLevelNamespaceAndTypeName = $"{MSLoggingNamespace}.{MSLoggingLogLevelTypeName}";
+
+	public const string MSLoggingILoggerTypeName = "ILogger";
+	public const string MSLoggingILoggerNamespaceAndTypeName = $"{MSLoggingNamespace}.{MSLoggingILoggerTypeName}";
 
 	public const string PurviewLoggingNamespace = "Purview.Logging.SourceGenerator";
 
@@ -22,6 +26,8 @@ static class Helpers
 
 	public const string DefaultLogLevel = "Information";
 
+	readonly static public string IDisposableType = typeof(IDisposable).FullName;
+
 	static public string[] ValidLogLevels => LogLevelValuesToNames.Values.ToArray();
 
 	readonly static public Dictionary<int, string> LogLevelValuesToNames = new() {
@@ -33,7 +39,7 @@ static class Helpers
 		{ 5, "Critical" }
 	};
 
-	// Attributes are internal by default.
+	// Attributes are internal to avoid collisions.
 	public const string AttributeDefinitions = @$"
 using System;
 
@@ -63,6 +69,19 @@ namespace {MSLoggingNamespace}
 	}}
 }}
 ";
+
+	static public INamedTypeSymbol? GetAttributeSymbol(string attributeTypeName, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
+	{
+		cancellationToken.ThrowIfCancellationRequested();
+
+		// If we include the attributes in all referenced assemblies, we don't need to dyanmically parse and add...
+		return context.Compilation.GetTypeByMetadataName($"{MSLoggingNamespace}.{attributeTypeName}");
+
+		//var options = (context.Compilation as CSharpCompilation)?.SyntaxTrees[0].Options as CSharpParseOptions;
+		//var compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(AttributeDefinitions, Encoding.UTF8), options, cancellationToken: cancellationToken));
+
+		//return compilation.GetTypeByMetadataName($"{MSLoggingNamespace}.{attributeTypeName}");
+	}
 
 	static public (bool hasNamespace, bool isFileScoped, string? @namespace) GetNamespaceFrom(SyntaxNode syntaxNode)
 	{

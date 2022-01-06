@@ -1,7 +1,7 @@
-﻿#pragma warning disable IDE0161 // Convert to file-scoped namespace
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
-namespace LoggerTest.Nested
+#pragma warning disable IDE0161 // Convert to file-scoped namespace
+namespace LoggerTest.Interfaces.Nested
 #pragma warning restore IDE0161 // Convert to file-scoped namespace
 {
 	public interface INestedTestLogger

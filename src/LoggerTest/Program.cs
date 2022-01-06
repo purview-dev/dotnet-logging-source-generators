@@ -1,10 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using LoggerTest.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace LoggerTest;
 
-partial class Program
+sealed class Program
 {
 	static void Main()
 	{
@@ -14,42 +15,62 @@ partial class Program
 
 	static void TestLoggers(bool useSerilog)
 	{
+		Console.WriteLine("==========================================================");
+		Console.WriteLine("   Testing {0}Microsoft Extensions Logging", useSerilog ? "Serilog via " : null);
+		Console.WriteLine("==========================================================");
+
 		var serviceProvider = CreateServiceProvider(useSerilog);
 
-		//Console.WriteLine("UN-SCOPED:");
-		All(serviceProvider);
+		Console.WriteLine("   | Testing ServiceProvider non-scoped loggers:");
+		Console.WriteLine("==========================================================");
 
-		//Console.WriteLine("SCOPED:");
-		//using (var scope = serviceProvider.CreateScope())
-		//	All(scope.ServiceProvider);
+		All(serviceProvider, useSerilog);
 
-		//Console.WriteLine("RABBIT:");
+		Console.WriteLine("==========================================================");
 
-		//var rmql = serviceProvider.GetRequiredService<IRabbitMQLogger>();
+		Console.WriteLine("   | Testing ServiceProvider scoped loggers:");
+		Console.WriteLine("==========================================================");
 
-		//using (rmql.MessageReceived("A Message Id"))
-		//{
-		//	rmql.Processing("A payload..");
+		using (var scope = serviceProvider.CreateScope())
+			All(scope.ServiceProvider, useSerilog);
 
-		//	rmql.SuccessfullyProcessedMessage(TimeSpan.FromSeconds(1));
-
-		//	rmql.FailedToProcessMessage(new FileNotFoundException("Just Testing"));
-		//}
-
+		Console.WriteLine("==========================================================");
+		Console.WriteLine("   Testing complete, press ENTER to continue.");
 		Console.ReadLine();
 	}
 
-	static void All(IServiceProvider serviceProvider)
+	static void All(IServiceProvider serviceProvider, bool usingSeriLog)
 	{
+		TestILogger(serviceProvider, usingSeriLog);
 		TestIBasicLogger(serviceProvider);
-
-		return;
-
+		TestIInternalTestLogger(serviceProvider);
 		TestIFileScopedNSTestLogger(serviceProvider);
 		TestIScopedTestLogger(serviceProvider);
 		TestITestLogger(serviceProvider);
 		TestINestedFileScopedNSTestLogger(serviceProvider);
 		TestINestedTestLogger(serviceProvider);
+	}
+
+	static void TestILogger(IServiceProvider serviceProvider, bool usingSeriLog)
+	{
+		var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+
+		var levels = new[] {
+			LogLevel.Trace,
+			LogLevel.Debug,
+			LogLevel.Information,
+			LogLevel.Warning,
+			LogLevel.Error,
+			LogLevel.Critical
+		};
+
+		using (logger.BeginScope("Testing ILogger<Program>, Logger Type: {LoggerType}Microsoft.Extensions.Logging", usingSeriLog ? "Serilog via " : string.Empty))
+		{
+			foreach (var level in levels)
+			{
+				logger.Log(level, "Logging {Level} Output: A Guid Parameter : {GuidParameter}", level, Guid.NewGuid());
+			}
+		}
 	}
 
 	static void TestIFileScopedNSTestLogger(IServiceProvider serviceProvider)
@@ -95,14 +116,14 @@ partial class Program
 
 	static void TestINestedFileScopedNSTestLogger(IServiceProvider serviceProvider)
 	{
-		var logger = serviceProvider.GetRequiredService<Nested.INestedFileScopedNSTestLogger>();
+		var logger = serviceProvider.GetRequiredService<Interfaces.Nested.INestedFileScopedNSTestLogger>();
 
 		logger.LogTest();
 	}
 
 	static void TestINestedTestLogger(IServiceProvider serviceProvider)
 	{
-		var logger = serviceProvider.GetRequiredService<Nested.INestedTestLogger>();
+		var logger = serviceProvider.GetRequiredService<Interfaces.Nested.INestedTestLogger>();
 
 		logger.LogTest();
 	}
@@ -169,14 +190,13 @@ partial class Program
 					a.SetMinimumLevel(LogLevel.Trace);
 				}
 			})
-			.AddLog<IRabbitMQLogger>()
 			.AddLog<IFileScopedNSTestLogger>()
 			.AddLog<IScopedTestLogger>()
 			.AddLog<ITestLogger>()
 			.AddLog<IInternalTestLogger>()
 			.AddLog<IBasicLogger>()
-			.AddLog<Nested.INestedFileScopedNSTestLogger>()
-			.AddLog<Nested.INestedTestLogger>();
+			.AddLog<Interfaces.Nested.INestedFileScopedNSTestLogger>()
+			.AddLog<Interfaces.Nested.INestedTestLogger>();
 
 		return services.BuildServiceProvider(new ServiceProviderOptions {
 			ValidateOnBuild = true,

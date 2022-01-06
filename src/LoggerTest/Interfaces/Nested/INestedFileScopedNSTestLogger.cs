@@ -1,4 +1,4 @@
-﻿namespace LoggerTest.Nested;
+﻿namespace LoggerTest.Interfaces.Nested;
 
 public interface INestedFileScopedNSTestLogger
 {

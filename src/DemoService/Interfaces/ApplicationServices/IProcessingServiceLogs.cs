@@ -1,6 +1,9 @@
-﻿namespace LoggerTest;
+﻿using DemoService;
+using Microsoft.Extensions.Logging;
 
-public interface IBasicLogger
+namespace DemoService.Interfaces.ApplicationServices;
+
+public interface IProcessingServiceLogs
 {
 	IDisposable BeginProcessing(Guid contextId);
 
@@ -12,5 +15,6 @@ public interface IBasicLogger
 
 	void CompletedProcessing(TimeSpan duration);
 
-	void FailedToProcess(Exception ex);
+	[LogEvent(Level = LogLevel.Warning)]
+	void MissingPayload(string name);
 }

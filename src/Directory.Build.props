@@ -8,7 +8,7 @@
 		<LangVersion>10.0</LangVersion>
 		<IsPackable>false</IsPackable>
 
-		<!-- Set this to true to show the generated files. -->
+		<!-- Set this to true to keep the generated files. -->
 		<EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
 
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
@@ -38,7 +38,6 @@
 	
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="../.build/Purview-Icon-128x128.png" Pack="true" PackagePath="" />
-		<None Include="bin/" Visible="false" />
 
 	</ItemGroup>
 

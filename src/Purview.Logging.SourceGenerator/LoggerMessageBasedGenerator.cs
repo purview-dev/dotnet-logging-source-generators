@@ -2,24 +2,25 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Purview.Logging.SourceGenerator;
+using Purview.Logging.SourceGenerator.Emitters;
 
-namespace Logger.Gen;
+namespace Purview.Logging.SourceGenerator;
 
 [Generator]
-partial class LoggerImplGenerator : ISourceGenerator
+sealed class LoggerMessageBasedGenerator : ISourceGenerator
 {
-	public const bool STORE_DEBUG_DATA = true;
-
 	public void Initialize(GeneratorInitializationContext context)
-		=> context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+	{
+		context.RegisterForPostInitialization(a =>
+		{
+			a.AddSource("_LoggerGenAttributes.cs", Helpers.AttributeDefinitions);
+		});
+		context.RegisterForSyntaxNotifications(() => new LoggerMessageSyntaxReceiver());
+	}
 
 	public void Execute(GeneratorExecutionContext context)
 	{
-		IncludeAttributes(context);
-
-		var receiver = context.SyntaxReceiver as SyntaxReceiver;
+		var receiver = context.SyntaxReceiver as LoggerMessageSyntaxReceiver;
 		if ((receiver?.CandidateInterfaces?.Count ?? 0) == 0)
 		{
 			// nothing to do yet
@@ -33,23 +34,26 @@ partial class LoggerImplGenerator : ISourceGenerator
 			var isInterfacePublic = interfaceDeclaration.Modifiers.Any(SyntaxKind.PublicKeyword);
 
 			var source = GenerateSource(interfaceDeclaration, context);
+			// Using a guid for the filename as there was some issues
+			// with filename length (not file-system depth).
+			var filename = $"{Guid.NewGuid()}".Replace("-", string.Empty);
 
-			context.AddSource($"{source.path}.gen.cs", source.source);
+			context.AddSource($"{filename}.gen.cs", source.source);
 
 			DependencyInjectionMethodEmitter dependencyInjectionMethod = new(source.interfaceName, source.className, source.@namespace, isInterfacePublic);
 
 			var diSource = dependencyInjectionMethod.Generate();
 
-			context.AddSource($"{source.path}.di.gen.cs", diSource);
+			context.AddSource($"{filename}Extensions.gen.cs", diSource);
 		}
 	}
-
-	static void IncludeAttributes(GeneratorExecutionContext context)
-		=> context.AddSource("_LoggerGenAttributes.cs", Helpers.AttributeDefinitions);
 
 	static (string source, string path, string interfaceName, string className, string? @namespace) GenerateSource(InterfaceDeclarationSyntax interfaceDeclaration, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
 	{
 		var defaultLevel = GetDefaultLevel(interfaceDeclaration, context, cancellationToken);
+
+		// We're disabling CA1812 here - https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1812
+		// which warns us about non-instantiated classes. It's used via DI.
 
 		StringBuilder builder = new();
 		builder
@@ -66,12 +70,14 @@ partial class LoggerImplGenerator : ISourceGenerator
 
 			if (isFileScoped)
 			{
+				// If the source is using a file-scoped namespace, generate that.
 				builder
 					.AppendLine(";")
 					.AppendLine();
 			}
 			else
 			{
+				// If the source is using a non-file-scoped namespace, generate that instead.
 				builder
 					.AppendLine()
 					.AppendLine("{");
@@ -79,51 +85,59 @@ partial class LoggerImplGenerator : ISourceGenerator
 		}
 
 		// Add the class declaration.
-		var className = GetClassName(interfaceDeclaration);
-		var interfaceName = interfaceDeclaration.Identifier.ValueText;
+		var classDefinitionName = GetClassName(interfaceDeclaration);
+		var loggerInterfaceName = interfaceDeclaration.Identifier.ValueText;
 
 		var namespacePrefix = hasNamespace
 			? $"{@namespace}."
 			: null;
 
+		// Append an internal class definition that implements the interface, and
+		// a field of ILogger<T> where T is the interface type.
 		builder
 			.Append("sealed partial class ")
-			.Append(className)
+			.Append(classDefinitionName)
 			.Append(" : ")
 			.Append(namespacePrefix)
-			.AppendLine(interfaceName)
+			.AppendLine(loggerInterfaceName)
 			.AppendLine("{")
 			.Append("readonly ")
-			.Append(Helpers.MSLoggingNamespace)
-			.Append(".ILogger<")
+			.Append(Helpers.MSLoggingILoggerNamespaceAndTypeName)
+			.Append('<')
 			.Append(namespacePrefix)
-			.Append(interfaceName)
+			.Append(loggerInterfaceName)
 			.AppendLine("> _logger;")
 			.AppendLine();
 
+		// Generate the constructor that takes the ILogger<T> and
+		// sets the field.
 		builder
 			.Append("public ")
-			.Append(className)
+			.Append(classDefinitionName)
 			.Append('(')
-			.Append(Helpers.MSLoggingNamespace)
-			.Append(".ILogger<")
+			.Append(Helpers.MSLoggingILoggerNamespaceAndTypeName)
+			.Append('<')
 			.Append(namespacePrefix)
-			.Append(interfaceName)
+			.Append(loggerInterfaceName)
 			.AppendLine("> logger)")
 			.AppendLine("{")
 			.AppendLine("_logger = logger;")
 			.AppendLine("}")
 			.AppendLine();
 
-		var methodInfo = "";
-		var index = 0;
+		// ...implement the interface!
+		var memberIndex = 0;
+		var generatedLogEventMethod = false;
 		foreach (var memberSyntax in interfaceDeclaration.Members)
 		{
-			index++;
+			memberIndex++;
 			if (memberSyntax is PropertyDeclarationSyntax propertyDeclaration)
 			{
 				// WARNING
-				ReportProperty(propertyDeclaration, context);
+				ReportHelpers.ReportPropertyExistsOnLoggerInterface(propertyDeclaration, context);
+
+				// We implement it anyway, but only because we raise a warning and
+				// we don't want to stop compilation/ generation.
 				builder
 					.Append("public ")
 					.Append(propertyDeclaration.Type)
@@ -137,18 +151,21 @@ partial class LoggerImplGenerator : ISourceGenerator
 
 			if (memberSyntax is MethodDeclarationSyntax method)
 			{
-				LogMethodEmitter emitter = new(method, context, index, defaultLevel);
-				var genResult = emitter.Generate(cancellationToken);
+				LogMethodEmitter emitter = new(method, context, memberIndex, defaultLevel);
+				var methodImplementation = emitter.Generate(cancellationToken);
+				if (methodImplementation == null)
+					continue;
 
-				if (genResult != null)
-					methodInfo += genResult + "\n";
+				generatedLogEventMethod = true;
 
-				builder.AppendLine(genResult);
+				builder.AppendLine(methodImplementation);
 			}
 		}
 
-		if (methodInfo.Length > 0)
-			context.AddSource($"{className}.methodInfo.cs", "/*\n" + methodInfo + "\n*/");
+		if (!generatedLogEventMethod)
+		{
+			ReportHelpers.ReportNoLogEventsGenerated(context, interfaceDeclaration);
+		}
 
 		builder.AppendLine("}");
 
@@ -159,18 +176,15 @@ partial class LoggerImplGenerator : ISourceGenerator
 			.AppendLine()
 			.AppendLine("#pragma warning restore CA1812");
 
-		// Add final blank line.
+		// Add a final blank line.
 		builder.AppendLine();
 
-		return (source: builder.ToString(), path: namespacePrefix + className, interfaceName, className, namespacePrefix);
+		return (source: builder.ToString(), path: namespacePrefix + classDefinitionName, interfaceName: loggerInterfaceName, className: classDefinitionName, @namespace: namespacePrefix);
 	}
 
 	static string GetDefaultLevel(InterfaceDeclarationSyntax interfaceDeclaration, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
 	{
-		var options = (context.Compilation as CSharpCompilation)?.SyntaxTrees[0].Options as CSharpParseOptions;
-		var compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(Helpers.AttributeDefinitions, Encoding.UTF8), options, cancellationToken: cancellationToken));
-
-		var defaultLogEventAttribute = compilation.GetTypeByMetadataName($"{Helpers.MSLoggingNamespace}.{Helpers.PurviewDefaultLogLevelAttributeNameWithSuffix}");
+		var defaultLogEventAttribute = Helpers.GetAttributeSymbol(Helpers.PurviewDefaultLogLevelAttributeNameWithSuffix, context, cancellationToken);
 		if (defaultLogEventAttribute == null)
 		{
 			// Attribute not defined.
@@ -223,43 +237,5 @@ partial class LoggerImplGenerator : ISourceGenerator
 			className = className.Substring(1);
 
 		return $"{className}Core";
-	}
-
-	static void ReportProperty(PropertyDeclarationSyntax propertyDeclaration, GeneratorExecutionContext context)
-	{
-		context.ReportDiagnostic(Diagnostic.Create(
-			new DiagnosticDescriptor(
-				"PVL-0003",
-				"Properties are not valid on logger interfaces.",
-				"Properties are not supported on logger interfaces, please remove the {0} property.",
-				"Purview.Logging",
-				DiagnosticSeverity.Error,
-				true),
-			propertyDeclaration.GetLocation(),
-			messageArgs: new object[] { propertyDeclaration.Identifier })
-		);
-	}
-
-	sealed private class SyntaxReceiver : ISyntaxReceiver
-	{
-		readonly static string[] _suffixes = new[] { "Log", "Logs", "Logger" };
-
-		List<InterfaceDeclarationSyntax>? _candidateInterfaces;
-
-		public List<InterfaceDeclarationSyntax>? CandidateInterfaces => _candidateInterfaces;
-
-		public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
-		{
-			// Only classes
-			if (syntaxNode is InterfaceDeclarationSyntax interfaceDeclaration)
-			{
-				if (!_suffixes.Any(a => interfaceDeclaration.Identifier.ValueText.EndsWith(a, StringComparison.Ordinal)))
-					return;
-
-				// Match add to candidates
-				_candidateInterfaces ??= new List<InterfaceDeclarationSyntax>();
-				_candidateInterfaces.Add(interfaceDeclaration);
-			}
-		}
 	}
 }
