@@ -18,7 +18,7 @@ public class ProcessingService
 		var sw = Stopwatch.StartNew();
 		using (_logs.BeginProcessing(contextId))
 		{
-			if (someData.Payload == null)
+			if (string.IsNullOrWhiteSpace(someData.Payload))
 				_logs.MissingPayload(nameof(someData.Payload));
 			else
 				_logs.OperationPart1(someData.Payload);
