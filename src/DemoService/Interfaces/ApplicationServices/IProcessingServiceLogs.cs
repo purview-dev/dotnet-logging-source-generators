@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DemoService.Models;
 
 namespace DemoService.Interfaces.ApplicationServices;
 
@@ -10,6 +10,7 @@ public interface IProcessingServiceLogs
 
 	void OperationPart2(int anIntParam);
 
+	[LogEvent(Level = LogLevel.Trace)]
 	void OperationPart3(SomeData aComplexTypeParam);
 
 	void CompletedProcessing(TimeSpan duration);

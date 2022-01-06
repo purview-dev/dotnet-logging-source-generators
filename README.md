@@ -41,6 +41,7 @@ public interface IProcessingServiceLogs
 
   void OperationPart2(int anIntParam);
 
+  [LogEvent(Level = LogLevel.Trace)]
   void OperationPart3(SomeData aComplexTypeParam);
 
   void CompletedProcessing(TimeSpan duration);

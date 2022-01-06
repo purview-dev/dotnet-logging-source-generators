@@ -1,4 +1,4 @@
-﻿namespace DemoService;
+﻿namespace DemoService.Models;
 
 public class SomeData
 {

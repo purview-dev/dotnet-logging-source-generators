@@ -1,5 +1,6 @@
 ﻿using DemoService.ApplicationServices;
 using DemoService.Interfaces.ApplicationServices;
+using DemoService.Models;
 using NSubstitute;
 using Xunit;
 
