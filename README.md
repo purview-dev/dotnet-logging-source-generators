@@ -14,13 +14,11 @@ Reference the source generator in your CSPROJ file:
 
 ```xml
 <ItemGroup>
-	<PackageReference Include="Purview.Logging.SourceGenerator" Version="0.8.1-prerelease" />
+  <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.8.2-prerelease" />
 </ItemGroup>
 ```
 
-
-
-Create an interface (public or internal), make sure the name ends with any of the following (case-sensitive):
+Create an `interface` (`public` or `internal`), make sure the name ends with any of the following (**case-sensitive**):
 
 * `Log`
 * `Logs`
@@ -28,26 +26,27 @@ Create an interface (public or internal), make sure the name ends with any of th
 
 Call `services.AddLog<TInterfaceType>()` on your DI registration and you're good to go! Inject or resolve as you see fit.
 
-Currently you must have the `Microsoft.Extensions.DepdencyInjection` and `Microsoft.Extensions.Logging` packages installed along with the `Purview.Logging.SourceGenerator` package.
+Currently you must have the `Microsoft.Extensions.DepdencyInjection` and `Microsoft.Extensions.Logging` packages installed along with the `Purview.Logging.SourceGenerator` package in your target project.
 
 ## Quick demo:
 
 ### Define the interface:
 
 ```c#
-public interface IBasicLogger
+public interface IProcessingServiceLogs
 {
-	IDisposable BeginProcessing();
+  IDisposable BeginProcessing(Guid contextId);
 
-	void OperationPart1(string aStringParam);
+  void OperationPart1(string aStringParam);
 
-	void OperationPart2(int anIntParam);
+  void OperationPart2(int anIntParam);
 
-	void OperationPart3(SomeData aComplexTypeParam);
+  void OperationPart3(SomeData aComplexTypeParam);
 
-	void CompletedProcessing(TimeSpan duration);
+  void CompletedProcessing(TimeSpan duration);
 
-	void FailedToProcess(Exception ex);
+  [LogEvent(Level = LogLevel.Warning)]
+  void MissingPayload(string name);
 }
 ```
 
@@ -56,77 +55,78 @@ Notice here we're also using `IDisposable` for [scoped](https://docs.microsoft.c
 ### Register with DI
 
 ```c#
-services.AddLog<ITestLogger>() // this is an auto-generated extension method.
+services.AddLog<IProcessingServiceLogs>() // this is an auto-generated extension method.
 ```
 
 ### Use... !
 
 ```c#
-// inject or resolve the IBasicLogger.
-
-IBasicLogger logger = ...;
-
-var contextId = Guid.NewGuid();
-using (logger.BeginProcessing(contextId))
+sealed class ProcessingService
 {
-	// Do stuff...
-	logger.OperationPart1("Some Param...!");
+  readonly IProcessingServiceLogs _logs;
 
-	// Do more stuff...
-	logger.OperationPart2(99);
+  public ProcessingService(IProcessingServiceLogs logs)
+  {
+    _logs = logs;
+  }
 
-	// Do even more stuff...
-	logger.OperationPart3(new SomeData {
-		ACount = 1,
-		Payload = "abc123"
-	});
-	
-    	// Completed...
-	logger.CompletedProcessing(TimeSpan.FromSeconds(1.1));
-
-	try
-	{
-		throw new InvalidOperationException("For Completeness we'll raise this too.");
-	}
-	catch (Exception ex)
-	{
-		logger.FailedToProcess(ex);
-	}
+  public void Process(Guid contextId, SomeData someData)
+  {
+    var sw = Stopwatch.StartNew();
+    using (_logs.BeginProcessing(contextId))
+    {
+      if (string.IsNullOrWhiteSpace(someData.Payload))
+        _logs.MissingPayload(nameof(someData.Payload));
+      else
+        _logs.OperationPart1(someData.Payload);
+        
+      if (someData.ACount == null)
+        _logs.MissingPayload(nameof(someData.ACount));
+      else
+        _logs.OperationPart2(someData.ACount.Value);
+        
+      _logs.OperationPart3(someData);
+      
+      sw.Stop();
+      
+      // Super-quick elapsed time...!
+      _logs.CompletedProcessing(sw.Elapsed);
+    }
+  }
 }
 ```
 
-### See the output
+### Testing...!
 
-#### Microsoft.Extensions.Logging.Console
+Full example is in the `DemoService.UnitTests` project, this is just the abridged version. 
 
-```powershell
-info: LoggerTest.IBasicLogger[2]
-      => BeginProcessing: fd0d99c9-bbf6-42e9-a90f-e99b5f217a89
-      OperationPart1: Some Param...!
-info: LoggerTest.IBasicLogger[3]
-      => BeginProcessing: fd0d99c9-bbf6-42e9-a90f-e99b5f217a89
-      OperationPart2: 99
-info: LoggerTest.IBasicLogger[4]
-      => BeginProcessing: fd0d99c9-bbf6-42e9-a90f-e99b5f217a89
-      OperationPart3: Count: 1 @ 04/01/2022 15:21:29 +00:00: abc123
-info: LoggerTest.IBasicLogger[5]
-      => BeginProcessing: fd0d99c9-bbf6-42e9-a90f-e99b5f217a89
-      CompletedProcessing: 00:00:01.1000000
-fail: LoggerTest.IBasicLogger[6]
-      => BeginProcessing: fd0d99c9-bbf6-42e9-a90f-e99b5f217a89
-      FailedToProcess
-      System.InvalidOperationException: For Completeness we'll raise this too.
-```
+It uses the excellent [`xunit`](https://www.nuget.org/packages/xunit/)  and [`NSubstitute`](https://www.nuget.org/packages/NSubstitute/).
 
-#### Serilog.Extensions.Logger + Serilog.Sinks.Console
+```c#
+[Fact]
+public void Process_GivenOperationCompletes_RaisesCompletedProcessingEvent()
+{
+  // Arrange
+  Guid contextId = Guid.NewGuid();
 
-```powershell
-[15:13:17 INF] OperationPart1: Some Param...!
-[15:13:17 INF] OperationPart2: 99
-[15:13:17 INF] OperationPart3: Count: 1 @ 04/01/2022 15:21:30 +00:00: abc123
-[15:13:17 INF] CompletedProcessing: 00:00:01.1000000
-[15:13:17 ERR] FailedToProcess
-System.InvalidOperationException: For Completeness we'll raise this too.
+  IProcessingServiceLogs logs = CreateLogs();
+  ProcessingService processingService = CreateProcessingService(logs: logs);
+  SomeData someData = new();
+
+  // Act
+  processingService.Process(contextId, someData);
+
+  // Assert
+  logs
+    .Received(1)
+    .CompletedProcessing(duration: Arg.Any<TimeSpan>());
+}
+
+static ProcessingService CreateProcessingService(IProcessingServiceLogs? logs = null)
+  => new(logs ?? CreateLogs());
+
+static IProcessingServiceLogs CreateLogs()
+  => Substitute.For<IProcessingServiceLogs>();
 ```
 
 ## Log Event Configuration
@@ -134,7 +134,7 @@ System.InvalidOperationException: For Completeness we'll raise this too.
 By default each assembly where a logging interface is defined get two attributes generated that can be used to control the log event:
 
 1. `DefaultLogLevelAttribute` - use on an interface to control the default log level - system-wide, the default is `Information`.
-2. `LogEventAttributte` - use to configure individual log events, including Event Id, Event Name, Log Level and Message Template.
+2. `LogEventAttributte` - use to configure individual log events, including their Event Id, Event Name, Log Level and Message Template.
 
 I was hoping to get the `DefaultLogLevelAttribute` working as an  `assembly` attribute too to define the default at the assembly level, but haven't find a way of making this work yet so for now it's on a per-interface basis.
 
@@ -162,8 +162,8 @@ partial class ImportantLoggerCore
 
 ## Notes
 
-This project is very early days - code is very messy at the moment, and it doesn't have much in the way of testing currently. All this is in-part because Source Generators in incredibly hard to debug currently. As I get time, I'll improve the codebase and testability of the whole project.
+This project is very early days - code is very messy at the moment, and it doesn't have much in the way of testing currently. All this is in-part because Source Generators are incredibly hard to debug and test currently. As I get time, I'll improve the codebase and testability of the whole project.
 
-There is a demo project. It's a bit of a mish-mash at the moment... I'll tidy it up later!
+There is a demo project called LoggerTest. It's a bit of a mish-mash at the moment! The DemoService project is nothing more than a few classes and interface to demo the unit testing.
 
 The history of this project was a little interesting, I've been doing this for years, but using C# generated at runtime and creating a dynamic assembly to enable this behaviour. Using Source Generators was a natural step forward.

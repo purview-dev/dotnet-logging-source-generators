@@ -1,10 +1,9 @@
 ﻿using System.Diagnostics;
-using DemoService;
 using DemoService.Interfaces.ApplicationServices;
 
 namespace DemoService.ApplicationServices;
 
-public class ProcessingService
+sealed class ProcessingService
 {
 	readonly IProcessingServiceLogs _logs;
 

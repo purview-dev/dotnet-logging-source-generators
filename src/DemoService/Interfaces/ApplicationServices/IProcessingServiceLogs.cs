@@ -1,5 +1,4 @@
-﻿using DemoService;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace DemoService.Interfaces.ApplicationServices;
 
