@@ -25,8 +25,9 @@
 
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<IsPackable>true</IsPackable>
-		<IncludeBuildOutput>false</IncludeBuildOutput>
 
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+		
 		<RepositoryUrl>https://github.com/purview-dev/dotnet-logging-source-generators</RepositoryUrl>
 		<PackageTags>logging;source-generator;high-performance-logging;dotnet;aspnet</PackageTags>
 
@@ -35,8 +36,7 @@
 	</PropertyGroup>
 
 	<ItemGroup Label="Source Generator ItemGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('.SourceGenerator'))">
-	
-		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		
 		<None Include="../.build/Purview-Icon-128x128.png" Pack="true" PackagePath="" />
 
 	</ItemGroup>
