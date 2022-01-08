@@ -15,7 +15,7 @@ namespace LoggerTest.Interfaces
 
         void LogTest(int intParam);
 
-        void LogTest(PeriodicTimer parallelParam, Exception exception);
+        void LogTest(SomeData someData, Exception exception);
 
         void LogTest(Exception exception);
 

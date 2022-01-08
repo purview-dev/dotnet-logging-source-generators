@@ -2,20 +2,13 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFrameworks>net462;net472;net48;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Using Include="Microsoft.Extensions.DependencyInjection" />
-		<Using Include="Microsoft.Extensions.Logging" />
-		<Using Include="DemoService.Interfaces.ApplicationServices" />
-	</ItemGroup>
-
-	<ItemGroup>
+		<PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
-		<PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
-		<PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

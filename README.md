@@ -160,6 +160,73 @@ partial class ImportantLoggerCore
   }
 }
 ```
+## Performance
+
+As you can see, the performance isn't bad either in this canned example where we compare:
+
+* `ILogger<T>`
+* `LoggerMessage.Define` via extension methods
+* the interface-based source generation approach
+
+|                                 Method |                  Job |              Runtime | Iterations |         Mean |       Error |      StdDev | Ratio | RatioSD |
+|--------------------------------------- |--------------------- |--------------------- |----------- |-------------:|------------:|------------:|------:|--------:|
+|                             ILogger<T> |             .NET 5.0 |             .NET 5.0 |          1 |     624.8 ns |    11.67 ns |    11.46 ns |  0.95 |    0.02 |
+|                   LoggerMessage.Define |             .NET 5.0 |             .NET 5.0 |          1 |     224.7 ns |     3.82 ns |     3.39 ns |  0.34 |    0.01 |
+| 'Interface-based LoggerMessage.Define' |             .NET 5.0 |             .NET 5.0 |          1 |     201.4 ns |     3.65 ns |     3.42 ns |  0.31 |    0.01 |
+|                             ILogger<T> |             .NET 6.0 |             .NET 6.0 |          1 |     654.5 ns |    10.54 ns |     9.86 ns |  1.00 |    0.00 |
+|                   LoggerMessage.Define |             .NET 6.0 |             .NET 6.0 |          1 |     187.0 ns |     2.80 ns |     2.48 ns |  0.29 |    0.01 |
+| 'Interface-based LoggerMessage.Define' |             .NET 6.0 |             .NET 6.0 |          1 |     205.3 ns |     4.04 ns |     3.77 ns |  0.31 |    0.01 |
+|                             ILogger<T> |        .NET Core 3.1 |        .NET Core 3.1 |          1 |     989.5 ns |    19.05 ns |    22.68 ns |  1.51 |    0.04 |
+|                   LoggerMessage.Define |        .NET Core 3.1 |        .NET Core 3.1 |          1 |     393.7 ns |     4.81 ns |     4.50 ns |  0.60 |    0.01 |
+| 'Interface-based LoggerMessage.Define' |        .NET Core 3.1 |        .NET Core 3.1 |          1 |     233.8 ns |     2.97 ns |     2.63 ns |  0.36 |    0.01 |
+|                             ILogger<T> | .NET Framework 4.6.2 | .NET Framework 4.6.2 |          1 |   1,288.8 ns |    25.41 ns |    24.95 ns |  1.97 |    0.06 |
+|                   LoggerMessage.Define | .NET Framework 4.6.2 | .NET Framework 4.6.2 |          1 |     549.7 ns |     9.85 ns |     8.73 ns |  0.84 |    0.02 |
+| 'Interface-based LoggerMessage.Define' | .NET Framework 4.6.2 | .NET Framework 4.6.2 |          1 |     271.3 ns |     5.38 ns |     6.20 ns |  0.41 |    0.01 |
+|                             ILogger<T> | .NET Framework 4.7.2 | .NET Framework 4.7.2 |          1 |   1,278.7 ns |    22.31 ns |    20.87 ns |  1.95 |    0.05 |
+|                   LoggerMessage.Define | .NET Framework 4.7.2 | .NET Framework 4.7.2 |          1 |     548.0 ns |    10.46 ns |    10.75 ns |  0.84 |    0.02 |
+| 'Interface-based LoggerMessage.Define' | .NET Framework 4.7.2 | .NET Framework 4.7.2 |          1 |     271.2 ns |     5.35 ns |     5.00 ns |  0.41 |    0.01 |
+|                             ILogger<T> |   .NET Framework 4.8 |   .NET Framework 4.8 |          1 |   1,293.4 ns |    22.32 ns |    20.87 ns |  1.98 |    0.03 |
+|                   LoggerMessage.Define |   .NET Framework 4.8 |   .NET Framework 4.8 |          1 |     545.2 ns |     9.68 ns |     9.06 ns |  0.83 |    0.02 |
+| 'Interface-based LoggerMessage.Define' |   .NET Framework 4.8 |   .NET Framework 4.8 |          1 |     272.0 ns |     4.15 ns |     3.89 ns |  0.42 |    0.01 |
+|                                        |                      |                      |            |              |             |             |       |         |
+|                             ILogger<T> |             .NET 5.0 |             .NET 5.0 |         10 |   6,426.7 ns |    92.34 ns |    86.37 ns |  1.00 |    0.02 |
+|                   LoggerMessage.Define |             .NET 5.0 |             .NET 5.0 |         10 |   2,154.7 ns |    41.93 ns |    43.06 ns |  0.34 |    0.01 |
+| 'Interface-based LoggerMessage.Define' |             .NET 5.0 |             .NET 5.0 |         10 |   2,006.7 ns |    39.11 ns |    40.16 ns |  0.31 |    0.01 |
+|                             ILogger<T> |             .NET 6.0 |             .NET 6.0 |         10 |   6,399.3 ns |    84.90 ns |    75.26 ns |  1.00 |    0.00 |
+|                   LoggerMessage.Define |             .NET 6.0 |             .NET 6.0 |         10 |   1,854.4 ns |    19.39 ns |    18.14 ns |  0.29 |    0.00 |
+| 'Interface-based LoggerMessage.Define' |             .NET 6.0 |             .NET 6.0 |         10 |   1,987.6 ns |    38.18 ns |    42.44 ns |  0.31 |    0.01 |
+|                             ILogger<T> |        .NET Core 3.1 |        .NET Core 3.1 |         10 |   9,896.0 ns |   123.61 ns |   115.62 ns |  1.55 |    0.03 |
+|                   LoggerMessage.Define |        .NET Core 3.1 |        .NET Core 3.1 |         10 |   3,973.1 ns |    72.35 ns |    67.67 ns |  0.62 |    0.01 |
+| 'Interface-based LoggerMessage.Define' |        .NET Core 3.1 |        .NET Core 3.1 |         10 |   2,319.2 ns |    46.19 ns |    49.42 ns |  0.36 |    0.01 |
+|                             ILogger<T> | .NET Framework 4.6.2 | .NET Framework 4.6.2 |         10 |  12,813.3 ns |   155.78 ns |   145.72 ns |  2.00 |    0.04 |
+|                   LoggerMessage.Define | .NET Framework 4.6.2 | .NET Framework 4.6.2 |         10 |   5,435.8 ns |    60.80 ns |    56.87 ns |  0.85 |    0.01 |
+| 'Interface-based LoggerMessage.Define' | .NET Framework 4.6.2 | .NET Framework 4.6.2 |         10 |   2,728.7 ns |    36.24 ns |    30.26 ns |  0.43 |    0.01 |
+|                             ILogger<T> | .NET Framework 4.7.2 | .NET Framework 4.7.2 |         10 |  12,801.2 ns |   117.61 ns |   110.02 ns |  2.00 |    0.03 |
+|                   LoggerMessage.Define | .NET Framework 4.7.2 | .NET Framework 4.7.2 |         10 |   5,418.8 ns |    56.85 ns |    53.17 ns |  0.85 |    0.01 |
+| 'Interface-based LoggerMessage.Define' | .NET Framework 4.7.2 | .NET Framework 4.7.2 |         10 |   2,722.9 ns |    51.31 ns |    59.08 ns |  0.43 |    0.01 |
+|                             ILogger<T> |   .NET Framework 4.8 |   .NET Framework 4.8 |         10 |  12,877.3 ns |   165.35 ns |   154.67 ns |  2.02 |    0.04 |
+|                   LoggerMessage.Define |   .NET Framework 4.8 |   .NET Framework 4.8 |         10 |   5,415.8 ns |    65.15 ns |    60.94 ns |  0.85 |    0.01 |
+| 'Interface-based LoggerMessage.Define' |   .NET Framework 4.8 |   .NET Framework 4.8 |         10 |   2,708.7 ns |    48.58 ns |    45.44 ns |  0.42 |    0.01 |
+|                                        |                      |                      |            |              |             |             |       |         |
+|                             ILogger<T> |             .NET 5.0 |             .NET 5.0 |        100 |  65,957.6 ns | 1,307.48 ns | 1,605.70 ns |  0.99 |    0.02 |
+|                   LoggerMessage.Define |             .NET 5.0 |             .NET 5.0 |        100 |  21,124.5 ns |   291.12 ns |   272.32 ns |  0.32 |    0.01 |
+| 'Interface-based LoggerMessage.Define' |             .NET 5.0 |             .NET 5.0 |        100 |  20,083.2 ns |   220.38 ns |   206.14 ns |  0.30 |    0.01 |
+|                             ILogger<T> |             .NET 6.0 |             .NET 6.0 |        100 |  66,544.1 ns | 1,285.99 ns | 1,429.37 ns |  1.00 |    0.00 |
+|                   LoggerMessage.Define |             .NET 6.0 |             .NET 6.0 |        100 |  18,280.1 ns |   333.64 ns |   312.09 ns |  0.28 |    0.01 |
+| 'Interface-based LoggerMessage.Define' |             .NET 6.0 |             .NET 6.0 |        100 |  20,411.3 ns |   303.75 ns |   284.12 ns |  0.31 |    0.01 |
+|                             ILogger<T> |        .NET Core 3.1 |        .NET Core 3.1 |        100 |  99,146.2 ns | 1,102.03 ns | 1,030.84 ns |  1.49 |    0.04 |
+|                   LoggerMessage.Define |        .NET Core 3.1 |        .NET Core 3.1 |        100 |  39,630.8 ns |   768.35 ns |   718.71 ns |  0.60 |    0.01 |
+| 'Interface-based LoggerMessage.Define' |        .NET Core 3.1 |        .NET Core 3.1 |        100 |  23,426.2 ns |   364.09 ns |   322.75 ns |  0.35 |    0.01 |
+|                             ILogger<T> | .NET Framework 4.6.2 | .NET Framework 4.6.2 |        100 | 128,325.9 ns | 2,375.83 ns | 2,222.35 ns |  1.93 |    0.04 |
+|                   LoggerMessage.Define | .NET Framework 4.6.2 | .NET Framework 4.6.2 |        100 |  54,008.5 ns |   645.62 ns |   539.12 ns |  0.81 |    0.02 |
+| 'Interface-based LoggerMessage.Define' | .NET Framework 4.6.2 | .NET Framework 4.6.2 |        100 |  26,966.8 ns |   252.36 ns |   236.06 ns |  0.41 |    0.01 |
+|                             ILogger<T> | .NET Framework 4.7.2 | .NET Framework 4.7.2 |        100 | 129,285.9 ns | 2,577.77 ns | 3,068.66 ns |  1.94 |    0.04 |
+|                   LoggerMessage.Define | .NET Framework 4.7.2 | .NET Framework 4.7.2 |        100 |  54,440.2 ns |   704.24 ns |   658.75 ns |  0.82 |    0.02 |
+| 'Interface-based LoggerMessage.Define' | .NET Framework 4.7.2 | .NET Framework 4.7.2 |        100 |  26,895.6 ns |   450.48 ns |   421.38 ns |  0.41 |    0.01 |
+|                             ILogger<T> |   .NET Framework 4.8 |   .NET Framework 4.8 |        100 | 128,481.8 ns | 1,561.31 ns | 1,218.97 ns |  1.94 |    0.04 |
+|                   LoggerMessage.Define |   .NET Framework 4.8 |   .NET Framework 4.8 |        100 |  54,080.0 ns |   894.77 ns |   836.97 ns |  0.81 |    0.02 |
+| 'Interface-based LoggerMessage.Define' |   .NET Framework 4.8 |   .NET Framework 4.8 |        100 |  26,845.0 ns |   280.51 ns |   262.39 ns |  0.40 |    0.01 |
+
 
 ## Notes
 

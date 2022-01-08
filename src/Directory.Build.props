@@ -2,7 +2,6 @@
 
 	<PropertyGroup Label="Project Defaults">
 
-		<TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>10.0</LangVersion>
@@ -23,15 +22,20 @@
 
 	<PropertyGroup Label="Source Generator PropertyGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('.SourceGenerator'))">
 
-		<TargetFramework>netstandard2.0</TargetFramework>
 		<IsPackable>true</IsPackable>
 
 		<IncludeBuildOutput>false</IncludeBuildOutput>
-		
+
 		<RepositoryUrl>https://github.com/purview-dev/dotnet-logging-source-generators</RepositoryUrl>
 		<PackageTags>logging;source-generator;high-performance-logging;dotnet;aspnet</PackageTags>
 
 		<NoWarn>IDE0057;$(NoWarn)</NoWarn>
+
+	</PropertyGroup>
+
+	<PropertyGroup Label="Testing Project PropertyGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('Tests'))">
+
+		<NoWarn>IDE0007;$(NoWarn)</NoWarn>
 
 	</PropertyGroup>
 

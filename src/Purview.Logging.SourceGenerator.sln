@@ -9,6 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Purview.Logging.SourceGener
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F620BFB7-12B3-41AC-9908-BBAF5E699AC4}"
 	ProjectSection(SolutionItems) = preProject
+		benchmarks.cmd = benchmarks.cmd
 		build.cmd = build.cmd
 		Directory.Build.props = Directory.Build.props
 		global.json = global.json
@@ -18,6 +19,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoService", "DemoService\DemoService.csproj", "{9DA18D3F-11CB-49D3-98A1-ED722DAF8356}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoService.UnitTests", "DemoService.UnitTests\DemoService.UnitTests.csproj", "{9B1784F2-B11D-4FCD-AA6D-BA7D8EA00701}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggingBenchmark", "LoggingBenchmark\LoggingBenchmark.csproj", "{D5F1AB39-7D74-4717-8F73-F417BAD36F9F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +44,10 @@ Global
 		{9B1784F2-B11D-4FCD-AA6D-BA7D8EA00701}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B1784F2-B11D-4FCD-AA6D-BA7D8EA00701}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B1784F2-B11D-4FCD-AA6D-BA7D8EA00701}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5F1AB39-7D74-4717-8F73-F417BAD36F9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5F1AB39-7D74-4717-8F73-F417BAD36F9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5F1AB39-7D74-4717-8F73-F417BAD36F9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5F1AB39-7D74-4717-8F73-F417BAD36F9F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
