@@ -14,7 +14,7 @@ Reference the source generator in your CSPROJ file:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.8.3-prerelease" />
+  <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.9.0-prerelease" />
 </ItemGroup>
 ```
 
@@ -105,7 +105,7 @@ It uses the excellent [`xunit`](https://www.nuget.org/packages/xunit/)  and [`NS
 
 ```c#
 [Fact]
-public void Process_GivenOperationCompletes_RaisesCompletedProcessingEvent()
+public void Process_WhenProcessIsCalled_LogsBeginProcessingWithContext()
 {
   // Arrange
   Guid contextId = Guid.NewGuid();
@@ -120,7 +120,7 @@ public void Process_GivenOperationCompletes_RaisesCompletedProcessingEvent()
   // Assert
   logs
     .Received(1)
-    .CompletedProcessing(duration: Arg.Any<TimeSpan>());
+    .BeginProcessing(contextId: Arg.Is(contextId));
 }
 
 static ProcessingService CreateProcessingService(IProcessingServiceLogs? logs = null)
