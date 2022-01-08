@@ -50,9 +50,12 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			var isInterfacePublic = interfaceDeclaration.Modifiers.Any(SyntaxKind.PublicKeyword);
 
 			var source = GenerateSource(interfaceDeclaration, context);
-			// Using a guid for the filename as there was some issues
-			// with filename length (not file-system depth).
-			var filename = $"{Guid.NewGuid()}".Replace("-", string.Empty);
+
+			// Using a hash for the filename as there was some issues
+			// with the length of filename when using ns + interface
+			// (not file-system depth, but filename length).
+			var hash = GenerateHash($"{source.@namespace}.{source.interfaceName}");
+			var filename = $"{source.interfaceName}_{hash}";
 
 			context.AddSource($"{filename}.gen.cs", source.source);
 
@@ -61,6 +64,12 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			var diSource = dependencyInjectionMethod.Generate();
 
 			context.AddSource($"{filename}Extensions.gen.cs", diSource);
+		}
+
+		static string GenerateHash(string inputString)
+		{
+			var hash = inputString.GetHashCode() % 10000;
+			return hash.ToString("000000000000", System.Globalization.CultureInfo.InvariantCulture);
 		}
 	}
 

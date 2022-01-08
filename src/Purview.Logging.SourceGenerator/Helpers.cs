@@ -45,26 +45,69 @@ using System;
 
 namespace {MSLoggingNamespace}
 {{	
+	/// <summary>
+	/// Controls the default <see cref=""{MSLoggingLogLevelTypeName}""/> used when generating log events.
+	/// </summary>
 	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Interface | AttributeTargets.Assembly, AllowMultiple = false)]
 	sealed class {PurviewDefaultLogLevelAttributeNameWithSuffix} : Attribute
 	{{
-		public {PurviewDefaultLogLevelAttributeNameWithSuffix}({MSLoggingLogLevelNamespaceAndTypeName} defaultLevel)
+		/// <summary>
+		/// Initializes a new <see cref=""{PurviewDefaultLogLevelAttributeNameWithSuffix}""/>
+		/// </summary>
+		/// <param name=""defaultLevel"">The default <see cref=""{MSLoggingLogLevelTypeName}""/> to use for generating log events.</param>
+		public {PurviewDefaultLogLevelAttributeNameWithSuffix}({MSLoggingLogLevelTypeName} defaultLevel)
 		{{
 			DefaultLevel = defaultLevel;
 		}}
 
-		public {MSLoggingLogLevelNamespaceAndTypeName} DefaultLevel {{ get; }}
+		/// <summary>
+		/// The default <see cref=""{MSLoggingLogLevelTypeName}""/> used for generating log events.
+		/// </summary>
+		public {MSLoggingLogLevelTypeName} DefaultLevel {{ get; }}
 	}}
 
+	/// <summary>
+	/// Overrides/ configures settings for log event generation.
+	/// </summary>
 	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 	sealed class {PurviewLogEventAttributeNameWithSuffix} : Attribute
 	{{
+		/// <summary>
+		/// The <see cref=""EventId.Id""/> to use. If no value is specified, the index of the method is
+		/// used (as-per the order it is read by Rosyln).
+		/// </summary>
 		public int Id {{ get; set; }}
 
+		/// <summary>
+		/// The name of the <see cref=""EventId.Name""/> to use,
+		/// if this value is not set then the method name is used.
+		/// </summary>
 		public string? Name {{ get; set; }}
 
-		public {MSLoggingLogLevelNamespaceAndTypeName} Level {{ get; set; }} = {MSLoggingLogLevelNamespaceAndTypeName}.None;
+		/// <summary>
+		/// The <see cref=""{MSLoggingLogLevelTypeName}""/> used for generation. If non is specified,
+		/// the <see cref=""{PurviewDefaultLogLevelAttributeNameWithSuffix}.DefaultLevel""/> is used.
+		/// </summary>
+		/// <remarks>
+		/// If the log event contains an <see cref=""Exception""/> and
+		/// no level is defined, <see cref=""{MSLoggingLogLevelTypeName}.Error""/> is used.
+		/// </remarks>
+		public {MSLoggingLogLevelTypeName} Level {{ get; set; }} = {MSLoggingLogLevelTypeName}.None;
 
+		/// <summary>
+		/// The message template to use, if none is specified the following pattern is used:
+		/// {{MethodName}}: [{{ParameterName}}: {{ParameterValue}}, ...]
+		/// 
+		/// For example:
+		/// <code>
+		///		Operation1(int operationId, string value)
+		/// </code>
+		/// 
+		/// Would generate:
+		/// <code>
+		///		""Operation1: operationId: {{OperationId}}, value: {{Value}}""
+		/// </code>
+		/// </summary>
 		public string? Message {{ get; set; }}
 	}}
 }}

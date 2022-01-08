@@ -166,6 +166,16 @@ sealed partial class LogMethodEmitter
 		if (parameterType == null)
 			return null;
 
+		var isNullable = false;
+		if ((typeInfo.Nullability.Annotation == NullableAnnotation.Annotated)
+			|| (parameterSyntax.Type is NullableTypeSyntax && typeInfo.Type?.IsReferenceType == true))
+		{
+			isNullable = true;
+		}
+
+		if (isNullable)
+			parameterType += "?";
+
 		var isException = IsException(typeInfo.Type);
 
 		return new(paramterName, parameterType, isException);
