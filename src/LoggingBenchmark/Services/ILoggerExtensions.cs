@@ -4,6 +4,8 @@ namespace LoggingBenchmark.Services;
 
 static class ILoggerExtensions
 {
+	readonly static Func<ILogger, DateTimeOffset, IDisposable> _testStart = LoggerMessage.DefineScope<DateTimeOffset>("TestStart => Started: {Started}");
+
 	readonly static Action<ILogger, string?, int?, Exception?> _testTrace = LoggerMessage.Define<string?, int?>(
 		LogLevel.Trace,
 		new EventId(1, nameof(TestTrace)),
@@ -39,6 +41,9 @@ static class ILoggerExtensions
 		new EventId(6, nameof(TestWarning)),
 		"TestCritical: {StringParam}, {IntParam}"
 	);
+
+	static public IDisposable TestStart(this ILogger logger, DateTimeOffset started)
+		=> _testStart(logger, started);
 
 	static public void TestTrace(this ILogger logger, string? stringParam, int? intParam, Exception? exception = null)
 	{

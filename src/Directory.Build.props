@@ -10,6 +10,7 @@
 		<!-- Set this to true to keep the generated files. -->
 		<EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
 
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
 		<AnalysisLevel>5</AnalysisLevel>
@@ -20,7 +21,7 @@
 	
 	</PropertyGroup>
 
-	<PropertyGroup Label="Source Generator PropertyGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('.SourceGenerator'))">
+	<PropertyGroup Label="Source Generator Project PropertyGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('.SourceGenerator'))">
 
 		<IsPackable>true</IsPackable>
 
@@ -33,15 +34,44 @@
 
 	</PropertyGroup>
 
+	<ItemGroup Label="Source Generator Project ItemGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('.SourceGenerator'))">
+		
+		<None Include="../.build/Purview-Icon-128x128.png" Pack="true" PackagePath="" />
+
+		<Compile Remove="bin\**" />
+		<EmbeddedResource Remove="bin\**" />
+		<None Remove="bin\**" />
+
+		<!-- Package the generator in the analyzer directory of the nuget package -->
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" PrivateAssets="all" />
+
+	</ItemGroup>
+
 	<PropertyGroup Label="Testing Project PropertyGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('Tests'))">
 
 		<NoWarn>IDE0007;$(NoWarn)</NoWarn>
 
 	</PropertyGroup>
 
-	<ItemGroup Label="Source Generator ItemGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('.SourceGenerator'))">
-		
-		<None Include="../.build/Purview-Icon-128x128.png" Pack="true" PackagePath="" />
+	<ItemGroup Label="Testing Project ItemGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('Tests'))">
+
+		<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
+
+		<PackageReference Include="Microsoft.CodeCoverage" Version="17.0.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+		<PackageReference Include="NSubstitute" Version="4.2.2" />
+		<PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.15">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="xunit" Version="2.4.1" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 
 	</ItemGroup>
 

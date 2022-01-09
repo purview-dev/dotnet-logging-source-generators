@@ -166,4 +166,3 @@ public class ProcessingServiceTests
 	static IProcessingServiceLogs CreateLogs()
 		=> Substitute.For<IProcessingServiceLogs>();
 }
-

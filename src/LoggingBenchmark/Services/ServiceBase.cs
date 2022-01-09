@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace LoggingBenchmark.Services;
 
@@ -17,9 +18,7 @@ abstract class ServiceBase
 	{
 		ServiceCollection services = new();
 
-		services.AddLogging(builder =>
-		{
-		});
+		services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Trace));
 
 		Register(services);
 

@@ -21,4 +21,6 @@ interface IServiceLogger
 
 	[LogEvent(Level = LogLevel.Critical)]
 	void TestCritical(string? stringParameter, int? intParameter);
+
+	IDisposable TestStart(DateTimeOffset started);
 }

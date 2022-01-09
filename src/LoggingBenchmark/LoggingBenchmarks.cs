@@ -11,37 +11,37 @@ namespace LoggingBenchmark;
 [SimpleJob(RuntimeMoniker.Net60, baseline: true)]
 public class LoggingBenchmarks
 {
-	readonly Services.InterfaceBasedService _interfaceService = new();
-	readonly Services.MSILoggerService _msILoggerService = new();
-	readonly Services.MSLoggerMessageService _msLoggerMessageService = new();
+	readonly Services.DirectILoggerService _directILoggerService = new();
+	readonly Services.ExtensionBasedLoggerMessageService _extensionLoggerMessageService = new();
+	readonly Services.InterfaceBasedLoggerMessageService _interfaceLoggerMessageService = new();
 
 	[Params(1, 10, 100)]
 	public int Iterations { get; set; }
 
-	[Benchmark(Baseline = true, Description = "ILogger<T>")]
-	public void MSILoggerService()
+	[Benchmark(Baseline = true, Description = "Direct:ILogger<T>")]
+	public void DirectILoggerService()
 	{
 		for (var i = 0; i < Iterations; i++)
 		{
-			_msILoggerService.Execute();
+			_directILoggerService.Execute();
 		}
 	}
 
-	[Benchmark(Description = "LoggerMessage.Define")]
-	public void MSLoggerMessageService()
+	[Benchmark(Description = "Extension:LoggerMessage")]
+	public void ExtensionLoggerMessageService()
 	{
 		for (var i = 0; i < Iterations; i++)
 		{
-			_msLoggerMessageService.Execute();
+			_extensionLoggerMessageService.Execute();
 		}
 	}
 
-	[Benchmark(Description = "Interface-based LoggerMessage.Define")]
-	public void InterfaceBased()
+	[Benchmark(Description = "Interface:LoggerMessage")]
+	public void InterfaceLoggerMessageService()
 	{
 		for (var i = 0; i < Iterations; i++)
 		{
-			_interfaceService.Execute();
+			_interfaceLoggerMessageService.Execute();
 		}
 	}
 }
