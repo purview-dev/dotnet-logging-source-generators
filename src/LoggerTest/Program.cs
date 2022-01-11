@@ -181,11 +181,15 @@ sealed class Program
 				}
 				else
 				{
+#if NETCOREAPP3_1 || NET462
+					a.AddConsole(a => a.IncludeScopes = true);
+#else
 					a.AddSimpleConsole(a =>
 					{
 						a.IncludeScopes = true;
 						a.UseUtcTimestamp = true;
 					});
+#endif
 
 					a.SetMinimumLevel(LogLevel.Trace);
 				}

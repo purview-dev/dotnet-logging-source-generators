@@ -94,9 +94,9 @@ partial class LogMethodEmitter
 			.Append(logSettings?.Message ?? BuildMessage(methodName, paramsWithoutException))
 			.Append('"');
 
-		if (methodReturnType == MethodReturnType.Void)
+		if (methodReturnType == MethodReturnType.Void && _hasLogOptions.Value)
 		{
-			// Log define options... disable skip because we do it.
+			// If LogDefineOptions is defined... skip the log level enable check because we do it.
 			builder
 				.Append(", new ")
 				.Append(Helpers.MSLoggingNamespace)

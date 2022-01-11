@@ -15,12 +15,21 @@ sealed partial class LogMethodEmitter
 	readonly int _methodIndex;
 	readonly string _defaultLevel;
 
+	readonly Lazy<bool> _hasLogOptions;
+
 	public LogMethodEmitter(MethodDeclarationSyntax methodDeclaration, GeneratorExecutionContext context, int methodIndex, string defaultLevel)
 	{
 		_methodDeclaration = methodDeclaration;
 		_context = context;
 		_methodIndex = methodIndex;
 		_defaultLevel = defaultLevel;
+
+		_hasLogOptions = new(HasLogOptionsDefined);
+	}
+
+	bool HasLogOptionsDefined()
+	{
+		return _context.Compilation.GetTypeByMetadataName($"{Helpers.MSLoggingNamespace}.LogDefineOptions") != null;
 	}
 
 	public string? Generate(CancellationToken cancellationToken = default)

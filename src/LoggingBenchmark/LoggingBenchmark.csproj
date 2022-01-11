@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net462;net472;net48;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+		<TargetFrameworks>net462;net472;net48;net5.0;net6.0</TargetFrameworks>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -11,10 +11,18 @@
 	  <None Remove="BenchmarkDotNet.Artifacts\**" />
 	</ItemGroup>
 
+	<ItemGroup Label=".NET 5 / .NET Framework 4.7.2/ .NET Framework 4.6.2 Dependencies" Condition="'$(TargetFramework)' == 'net5.0' OR '$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net462'">
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
+	</ItemGroup>
+
+	<ItemGroup Label=".NET 6 / .NET Framework 4.8 Dependencies" Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'net48'">
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

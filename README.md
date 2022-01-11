@@ -14,7 +14,7 @@ Reference the source generator in your CSPROJ file:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.9.0-prerelease" />
+  <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.9.1-prerelease" />
 </ItemGroup>
 ```
 
@@ -26,7 +26,7 @@ Create an `interface` (`public` or `internal`), make sure the name ends with any
 
 Call `services.AddLog<TInterfaceType>()` on your DI registration and you're good to go! Inject or resolve as you see fit.
 
-Currently you must have the `Microsoft.Extensions.DepdencyInjection` and `Microsoft.Extensions.Logging` packages installed along with the `Purview.Logging.SourceGenerator` package in your target project.
+Currently you must have the `Microsoft.Extensions.DepdencyInjection` and `Microsoft.Extensions.Logging` (version 5 or higher is supported) packages installed along with the `Purview.Logging.SourceGenerator` package in your target project.
 
 ## Quick demo:
 
@@ -198,75 +198,64 @@ It appears as though the interface approach is nearly always fast than the exten
 
 ```
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
-Intel Core i7-1065G7 CPU 1.30GHz, 1 CPU, 8 logical and 4 physical cores
+Intel Core i9-10900KF CPU 3.70GHz, 1 CPU, 20 logical and 10 physical cores
   [Host]               : .NET Framework 4.8 (4.8.4420.0), X64 RyuJIT
   .NET 5.0             : .NET 5.0.13 (5.0.1321.56516), X64 RyuJIT
   .NET 6.0             : .NET 6.0.1 (6.0.121.56705), X64 RyuJIT
-  .NET Core 3.1        : .NET Core 3.1.22 (CoreCLR 4.700.21.56803, CoreFX 4.700.21.57101), X64 RyuJIT
   .NET Framework 4.6.2 : .NET Framework 4.8 (4.8.4420.0), X64 RyuJIT
   .NET Framework 4.7.2 : .NET Framework 4.8 (4.8.4420.0), X64 RyuJIT
   .NET Framework 4.8   : .NET Framework 4.8 (4.8.4420.0), X64 RyuJIT
 ```
 
-|                  Method |                  Job |              Runtime | Iterations |         Mean |        Error |       StdDev |       Median | Ratio | RatioSD |
-|------------------------ |--------------------- |--------------------- |----------- |-------------:|-------------:|-------------:|-------------:|------:|--------:|
-|       Direct:ILogger<T> |             .NET 5.0 |             .NET 5.0 |          1 |     956.1 ns |     19.05 ns |     21.17 ns |     955.0 ns |  1.04 |    0.05 |
-| Extension:LoggerMessage |             .NET 5.0 |             .NET 5.0 |          1 |     393.3 ns |      7.55 ns |      7.41 ns |     393.2 ns |  0.43 |    0.02 |
-| Interface:LoggerMessage |             .NET 5.0 |             .NET 5.0 |          1 |     395.3 ns |      7.81 ns |     10.43 ns |     398.0 ns |  0.43 |    0.02 |
-|       Direct:ILogger<T> |             .NET 6.0 |             .NET 6.0 |          1 |     914.3 ns |     17.03 ns |     40.13 ns |     916.6 ns |  1.00 |    0.00 |
-| Extension:LoggerMessage |             .NET 6.0 |             .NET 6.0 |          1 |     331.4 ns |      6.60 ns |      6.18 ns |     331.3 ns |  0.36 |    0.01 |
-| Interface:LoggerMessage |             .NET 6.0 |             .NET 6.0 |          1 |     346.6 ns |      6.03 ns |      5.03 ns |     346.2 ns |  0.37 |    0.02 |
-|       Direct:ILogger<T> |        .NET Core 3.1 |        .NET Core 3.1 |          1 |   1,473.6 ns |     26.55 ns |     24.83 ns |   1,481.0 ns |  1.59 |    0.07 |
-| Extension:LoggerMessage |        .NET Core 3.1 |        .NET Core 3.1 |          1 |     727.5 ns |     14.03 ns |     17.74 ns |     730.6 ns |  0.79 |    0.04 |
-| Interface:LoggerMessage |        .NET Core 3.1 |        .NET Core 3.1 |          1 |     523.9 ns |     16.49 ns |     46.25 ns |     514.8 ns |  0.57 |    0.06 |
-|       Direct:ILogger<T> | .NET Framework 4.6.2 | .NET Framework 4.6.2 |          1 |   2,015.7 ns |     38.97 ns |     94.86 ns |   2,005.1 ns |  2.21 |    0.15 |
-| Extension:LoggerMessage | .NET Framework 4.6.2 | .NET Framework 4.6.2 |          1 |   1,033.5 ns |     20.45 ns |     51.67 ns |   1,031.2 ns |  1.14 |    0.08 |
-| Interface:LoggerMessage | .NET Framework 4.6.2 | .NET Framework 4.6.2 |          1 |     586.2 ns |     11.71 ns |     24.19 ns |     581.7 ns |  0.64 |    0.04 |
-|       Direct:ILogger<T> | .NET Framework 4.7.2 | .NET Framework 4.7.2 |          1 |   1,978.2 ns |     34.90 ns |     53.29 ns |   1,977.7 ns |  2.16 |    0.12 |
-| Extension:LoggerMessage | .NET Framework 4.7.2 | .NET Framework 4.7.2 |          1 |   1,017.3 ns |     20.06 ns |     33.52 ns |   1,009.0 ns |  1.11 |    0.07 |
-| Interface:LoggerMessage | .NET Framework 4.7.2 | .NET Framework 4.7.2 |          1 |     580.0 ns |     11.25 ns |     13.81 ns |     580.6 ns |  0.63 |    0.03 |
-|       Direct:ILogger<T> |   .NET Framework 4.8 |   .NET Framework 4.8 |          1 |   1,991.8 ns |     39.64 ns |     65.12 ns |   1,986.8 ns |  2.18 |    0.10 |
-| Extension:LoggerMessage |   .NET Framework 4.8 |   .NET Framework 4.8 |          1 |   1,019.1 ns |     20.19 ns |     42.15 ns |   1,010.8 ns |  1.12 |    0.06 |
-| Interface:LoggerMessage |   .NET Framework 4.8 |   .NET Framework 4.8 |          1 |     589.6 ns |     11.61 ns |     21.53 ns |     588.4 ns |  0.65 |    0.04 |
-|                         |                      |                      |            |              |              |              |              |       |         |
-|       Direct:ILogger<T> |             .NET 5.0 |             .NET 5.0 |         10 |  10,135.7 ns |    201.29 ns |    557.79 ns |  10,096.5 ns |  1.11 |    0.07 |
-| Extension:LoggerMessage |             .NET 5.0 |             .NET 5.0 |         10 |   4,284.5 ns |     85.06 ns |    202.16 ns |   4,289.1 ns |  0.45 |    0.01 |
-| Interface:LoggerMessage |             .NET 5.0 |             .NET 5.0 |         10 |   4,248.5 ns |     83.86 ns |    180.52 ns |   4,225.1 ns |  0.45 |    0.01 |
-|       Direct:ILogger<T> |             .NET 6.0 |             .NET 6.0 |         10 |   9,225.3 ns |    129.51 ns |    101.11 ns |   9,255.6 ns |  1.00 |    0.00 |
-| Extension:LoggerMessage |             .NET 6.0 |             .NET 6.0 |         10 |   3,396.3 ns |     64.20 ns |     73.94 ns |   3,406.7 ns |  0.37 |    0.01 |
-| Interface:LoggerMessage |             .NET 6.0 |             .NET 6.0 |         10 |   3,451.3 ns |     68.09 ns |    126.21 ns |   3,474.2 ns |  0.37 |    0.01 |
-|       Direct:ILogger<T> |        .NET Core 3.1 |        .NET Core 3.1 |         10 |  14,680.5 ns |    283.13 ns |    278.07 ns |  14,654.8 ns |  1.59 |    0.04 |
-| Extension:LoggerMessage |        .NET Core 3.1 |        .NET Core 3.1 |         10 |   7,394.2 ns |    147.44 ns |    297.84 ns |   7,357.9 ns |  0.79 |    0.02 |
-| Interface:LoggerMessage |        .NET Core 3.1 |        .NET Core 3.1 |         10 |   4,839.2 ns |     94.39 ns |    129.20 ns |   4,771.2 ns |  0.53 |    0.02 |
-|       Direct:ILogger<T> | .NET Framework 4.6.2 | .NET Framework 4.6.2 |         10 |  17,982.3 ns |    355.29 ns |    593.61 ns |  17,764.6 ns |  1.96 |    0.07 |
-| Extension:LoggerMessage | .NET Framework 4.6.2 | .NET Framework 4.6.2 |         10 |   9,122.3 ns |    181.12 ns |    357.52 ns |   9,217.3 ns |  1.00 |    0.05 |
-| Interface:LoggerMessage | .NET Framework 4.6.2 | .NET Framework 4.6.2 |         10 |   5,177.0 ns |    102.01 ns |    158.82 ns |   5,186.2 ns |  0.56 |    0.01 |
-|       Direct:ILogger<T> | .NET Framework 4.7.2 | .NET Framework 4.7.2 |         10 |  18,021.2 ns |    355.44 ns |    684.81 ns |  17,775.9 ns |  1.93 |    0.06 |
-| Extension:LoggerMessage | .NET Framework 4.7.2 | .NET Framework 4.7.2 |         10 |   9,054.3 ns |    178.13 ns |    197.99 ns |   9,030.9 ns |  0.98 |    0.03 |
-| Interface:LoggerMessage | .NET Framework 4.7.2 | .NET Framework 4.7.2 |         10 |   5,150.5 ns |    101.12 ns |    135.00 ns |   5,183.5 ns |  0.56 |    0.02 |
-|       Direct:ILogger<T> |   .NET Framework 4.8 |   .NET Framework 4.8 |         10 |  18,063.9 ns |    328.61 ns |    307.38 ns |  18,181.3 ns |  1.96 |    0.03 |
-| Extension:LoggerMessage |   .NET Framework 4.8 |   .NET Framework 4.8 |         10 |  12,752.6 ns |  1,638.35 ns |  4,727.01 ns |   9,818.4 ns |  0.99 |    0.05 |
-| Interface:LoggerMessage |   .NET Framework 4.8 |   .NET Framework 4.8 |         10 |   5,413.7 ns |    107.74 ns |    154.52 ns |   5,422.6 ns |  0.58 |    0.02 |
-|                         |                      |                      |            |              |              |              |              |       |         |
-|       Direct:ILogger<T> |             .NET 5.0 |             .NET 5.0 |        100 | 106,258.1 ns |  1,998.95 ns |  4,672.48 ns | 105,718.8 ns |  0.78 |    0.17 |
-| Extension:LoggerMessage |             .NET 5.0 |             .NET 5.0 |        100 |  44,809.5 ns |    878.33 ns |  1,418.34 ns |  44,730.8 ns |  0.35 |    0.09 |
-| Interface:LoggerMessage |             .NET 5.0 |             .NET 5.0 |        100 |  44,655.0 ns |    884.53 ns |  1,377.11 ns |  44,650.5 ns |  0.35 |    0.10 |
-|       Direct:ILogger<T> |             .NET 6.0 |             .NET 6.0 |        100 | 146,016.1 ns | 10,145.55 ns | 27,429.09 ns | 147,172.8 ns |  1.00 |    0.00 |
-| Extension:LoggerMessage |             .NET 6.0 |             .NET 6.0 |        100 |  78,746.7 ns |  5,716.02 ns | 16,853.80 ns |  78,688.1 ns |  0.56 |    0.16 |
-| Interface:LoggerMessage |             .NET 6.0 |             .NET 6.0 |        100 |  45,796.8 ns |  2,822.26 ns |  8,321.49 ns |  46,332.1 ns |  0.33 |    0.11 |
-|       Direct:ILogger<T> |        .NET Core 3.1 |        .NET Core 3.1 |        100 | 146,099.0 ns |  6,170.77 ns | 17,505.45 ns | 141,205.1 ns |  1.06 |    0.32 |
-| Extension:LoggerMessage |        .NET Core 3.1 |        .NET Core 3.1 |        100 |  63,755.9 ns |  1,245.27 ns |  1,482.40 ns |  63,690.2 ns |  0.57 |    0.12 |
-| Interface:LoggerMessage |        .NET Core 3.1 |        .NET Core 3.1 |        100 |  43,128.8 ns |    834.95 ns |  1,085.68 ns |  43,185.6 ns |  0.37 |    0.09 |
-|       Direct:ILogger<T> | .NET Framework 4.6.2 | .NET Framework 4.6.2 |        100 | 167,813.2 ns |  3,337.23 ns |  3,709.32 ns | 168,202.0 ns |  1.53 |    0.32 |
-| Extension:LoggerMessage | .NET Framework 4.6.2 | .NET Framework 4.6.2 |        100 |  83,632.8 ns |  1,446.25 ns |  1,352.82 ns |  83,743.7 ns |  0.78 |    0.18 |
-| Interface:LoggerMessage | .NET Framework 4.6.2 | .NET Framework 4.6.2 |        100 |  47,880.2 ns |    912.99 ns |    854.01 ns |  48,114.9 ns |  0.45 |    0.10 |
-|       Direct:ILogger<T> | .NET Framework 4.7.2 | .NET Framework 4.7.2 |        100 | 167,800.6 ns |  3,338.73 ns |  3,844.88 ns | 168,011.0 ns |  1.52 |    0.33 |
-| Extension:LoggerMessage | .NET Framework 4.7.2 | .NET Framework 4.7.2 |        100 |  83,190.6 ns |  1,558.01 ns |  2,025.85 ns |  83,273.8 ns |  0.71 |    0.18 |
-| Interface:LoggerMessage | .NET Framework 4.7.2 | .NET Framework 4.7.2 |        100 |  47,548.8 ns |    932.56 ns |    778.73 ns |  47,916.8 ns |  0.48 |    0.06 |
-|       Direct:ILogger<T> |   .NET Framework 4.8 |   .NET Framework 4.8 |        100 | 167,651.7 ns |  3,216.27 ns |  4,402.47 ns | 167,050.6 ns |  1.39 |    0.38 |
-| Extension:LoggerMessage |   .NET Framework 4.8 |   .NET Framework 4.8 |        100 |  82,504.4 ns |  1,639.97 ns |  1,888.59 ns |  82,270.6 ns |  0.75 |    0.17 |
-| Interface:LoggerMessage |   .NET Framework 4.8 |   .NET Framework 4.8 |        100 |  47,673.5 ns |    684.95 ns |    607.19 ns |  47,827.7 ns |  0.46 |    0.09 |
-
+|                  Method |                  Job |              Runtime | Iterations |         Mean |       Error |      StdDev | Ratio | RatioSD |
+|------------------------ |--------------------- |--------------------- |----------- |-------------:|------------:|------------:|------:|--------:|
+|       Direct:ILogger<T> |             .NET 5.0 |             .NET 5.0 |          1 |     727.7 ns |     8.42 ns |     7.88 ns |  1.02 |    0.02 |
+| Extension:LoggerMessage |             .NET 5.0 |             .NET 5.0 |          1 |     298.7 ns |     4.64 ns |     4.34 ns |  0.42 |    0.01 |
+| Interface:LoggerMessage |             .NET 5.0 |             .NET 5.0 |          1 |     300.6 ns |     4.54 ns |     4.24 ns |  0.42 |    0.01 |
+|       Direct:ILogger<T> |             .NET 6.0 |             .NET 6.0 |          1 |     713.8 ns |    10.44 ns |     9.76 ns |  1.00 |    0.00 |
+| Extension:LoggerMessage |             .NET 6.0 |             .NET 6.0 |          1 |     242.8 ns |     3.04 ns |     2.69 ns |  0.34 |    0.01 |
+| Interface:LoggerMessage |             .NET 6.0 |             .NET 6.0 |          1 |     256.2 ns |     3.99 ns |     3.73 ns |  0.36 |    0.01 |
+|       Direct:ILogger<T> | .NET Framework 4.6.2 | .NET Framework 4.6.2 |          1 |   1,266.6 ns |    15.97 ns |    14.93 ns |  1.77 |    0.04 |
+| Extension:LoggerMessage | .NET Framework 4.6.2 | .NET Framework 4.6.2 |          1 |     691.2 ns |     5.16 ns |     4.83 ns |  0.97 |    0.01 |
+| Interface:LoggerMessage | .NET Framework 4.6.2 | .NET Framework 4.6.2 |          1 |     392.6 ns |     5.15 ns |     4.57 ns |  0.55 |    0.01 |
+|       Direct:ILogger<T> | .NET Framework 4.7.2 | .NET Framework 4.7.2 |          1 |   1,274.8 ns |    17.66 ns |    15.66 ns |  1.79 |    0.04 |
+| Extension:LoggerMessage | .NET Framework 4.7.2 | .NET Framework 4.7.2 |          1 |     693.2 ns |     6.65 ns |     5.89 ns |  0.97 |    0.02 |
+| Interface:LoggerMessage | .NET Framework 4.7.2 | .NET Framework 4.7.2 |          1 |     393.1 ns |     5.46 ns |     5.11 ns |  0.55 |    0.01 |
+|       Direct:ILogger<T> |   .NET Framework 4.8 |   .NET Framework 4.8 |          1 |   1,270.0 ns |    11.16 ns |     9.89 ns |  1.78 |    0.03 |
+| Extension:LoggerMessage |   .NET Framework 4.8 |   .NET Framework 4.8 |          1 |     689.6 ns |     6.99 ns |     6.19 ns |  0.97 |    0.02 |
+| Interface:LoggerMessage |   .NET Framework 4.8 |   .NET Framework 4.8 |          1 |     383.9 ns |     3.72 ns |     3.48 ns |  0.54 |    0.01 |
+|                         |                      |                      |            |              |             |             |       |         |
+|       Direct:ILogger<T> |             .NET 5.0 |             .NET 5.0 |         10 |   7,551.2 ns |    89.23 ns |    83.47 ns |  1.11 |    0.02 |
+| Extension:LoggerMessage |             .NET 5.0 |             .NET 5.0 |         10 |   2,976.4 ns |    49.82 ns |    46.60 ns |  0.44 |    0.01 |
+| Interface:LoggerMessage |             .NET 5.0 |             .NET 5.0 |         10 |   3,057.5 ns |    46.90 ns |    41.58 ns |  0.45 |    0.01 |
+|       Direct:ILogger<T> |             .NET 6.0 |             .NET 6.0 |         10 |   6,829.4 ns |   118.51 ns |   110.85 ns |  1.00 |    0.00 |
+| Extension:LoggerMessage |             .NET 6.0 |             .NET 6.0 |         10 |   2,409.6 ns |    44.43 ns |    41.56 ns |  0.35 |    0.01 |
+| Interface:LoggerMessage |             .NET 6.0 |             .NET 6.0 |         10 |   2,587.5 ns |    50.32 ns |    47.07 ns |  0.38 |    0.01 |
+|       Direct:ILogger<T> | .NET Framework 4.6.2 | .NET Framework 4.6.2 |         10 |  12,785.1 ns |   178.99 ns |   158.67 ns |  1.87 |    0.03 |
+| Extension:LoggerMessage | .NET Framework 4.6.2 | .NET Framework 4.6.2 |         10 |   6,915.7 ns |    98.57 ns |    87.38 ns |  1.01 |    0.02 |
+| Interface:LoggerMessage | .NET Framework 4.6.2 | .NET Framework 4.6.2 |         10 |   3,875.9 ns |    64.67 ns |    60.49 ns |  0.57 |    0.01 |
+|       Direct:ILogger<T> | .NET Framework 4.7.2 | .NET Framework 4.7.2 |         10 |  12,655.5 ns |   110.20 ns |   103.08 ns |  1.85 |    0.04 |
+| Extension:LoggerMessage | .NET Framework 4.7.2 | .NET Framework 4.7.2 |         10 |   6,923.7 ns |    82.25 ns |    72.91 ns |  1.01 |    0.02 |
+| Interface:LoggerMessage | .NET Framework 4.7.2 | .NET Framework 4.7.2 |         10 |   3,887.0 ns |    64.38 ns |    57.07 ns |  0.57 |    0.01 |
+|       Direct:ILogger<T> |   .NET Framework 4.8 |   .NET Framework 4.8 |         10 |  12,659.1 ns |   193.24 ns |   171.31 ns |  1.85 |    0.02 |
+| Extension:LoggerMessage |   .NET Framework 4.8 |   .NET Framework 4.8 |         10 |   6,887.3 ns |    72.48 ns |    60.52 ns |  1.01 |    0.02 |
+| Interface:LoggerMessage |   .NET Framework 4.8 |   .NET Framework 4.8 |         10 |   3,827.9 ns |    62.79 ns |    55.66 ns |  0.56 |    0.01 |
+|                         |                      |                      |            |              |             |             |       |         |
+|       Direct:ILogger<T> |             .NET 5.0 |             .NET 5.0 |        100 |  71,814.6 ns | 1,410.08 ns | 1,567.30 ns |  1.02 |    0.03 |
+| Extension:LoggerMessage |             .NET 5.0 |             .NET 5.0 |        100 |  32,709.5 ns |   468.23 ns |   437.98 ns |  0.46 |    0.01 |
+| Interface:LoggerMessage |             .NET 5.0 |             .NET 5.0 |        100 |  30,099.5 ns |   317.69 ns |   297.17 ns |  0.43 |    0.01 |
+|       Direct:ILogger<T> |             .NET 6.0 |             .NET 6.0 |        100 |  70,630.2 ns | 1,235.24 ns | 1,155.44 ns |  1.00 |    0.00 |
+| Extension:LoggerMessage |             .NET 6.0 |             .NET 6.0 |        100 |  25,182.6 ns |   272.66 ns |   241.70 ns |  0.36 |    0.01 |
+| Interface:LoggerMessage |             .NET 6.0 |             .NET 6.0 |        100 |  25,886.0 ns |   228.56 ns |   213.79 ns |  0.37 |    0.01 |
+|       Direct:ILogger<T> | .NET Framework 4.6.2 | .NET Framework 4.6.2 |        100 | 124,006.1 ns | 1,251.65 ns | 1,109.55 ns |  1.76 |    0.04 |
+| Extension:LoggerMessage | .NET Framework 4.6.2 | .NET Framework 4.6.2 |        100 |  68,775.5 ns |   904.29 ns |   845.87 ns |  0.97 |    0.02 |
+| Interface:LoggerMessage | .NET Framework 4.6.2 | .NET Framework 4.6.2 |        100 |  38,525.1 ns |   414.12 ns |   367.11 ns |  0.55 |    0.01 |
+|       Direct:ILogger<T> | .NET Framework 4.7.2 | .NET Framework 4.7.2 |        100 | 126,823.3 ns | 2,426.16 ns | 2,269.43 ns |  1.80 |    0.05 |
+| Extension:LoggerMessage | .NET Framework 4.7.2 | .NET Framework 4.7.2 |        100 |  68,657.4 ns |   933.39 ns |   827.42 ns |  0.97 |    0.02 |
+| Interface:LoggerMessage | .NET Framework 4.7.2 | .NET Framework 4.7.2 |        100 |  38,530.6 ns |   461.48 ns |   431.67 ns |  0.55 |    0.01 |
+|       Direct:ILogger<T> |   .NET Framework 4.8 |   .NET Framework 4.8 |        100 | 124,608.3 ns | 1,106.96 ns |   981.29 ns |  1.77 |    0.03 |
+| Extension:LoggerMessage |   .NET Framework 4.8 |   .NET Framework 4.8 |        100 |  69,327.0 ns |   860.28 ns |   804.70 ns |  0.98 |    0.01 |
+| Interface:LoggerMessage |   .NET Framework 4.8 |   .NET Framework 4.8 |        100 |  38,490.2 ns |   447.05 ns |   396.30 ns |  0.55 |    0.01 |
 
 ## Notes
 
