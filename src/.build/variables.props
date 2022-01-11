@@ -1,0 +1,22 @@
+<Project>
+
+	<PropertyGroup Label="Default Project Variables">
+
+		<IsTestProject>false</IsTestProject>
+		<IsSourceGeneratorProject>false</IsSourceGeneratorProject>
+
+	</PropertyGroup>
+
+	<PropertyGroup Label="Determine Test Project Variables" Condition="$(MSBuildProjectName.EndsWith('Tests'))">
+
+		<IsTestProject>true</IsTestProject>
+
+	</PropertyGroup>
+
+	<PropertyGroup Label="Determine Source Generator Variables" Condition="$(IsTestProject) != 'true' AND ($(MSBuildProjectName.EndsWith('.SourceGenerator')) OR $(MSBuildProjectName.Contains('.SourceGenerator.')))">
+
+		<IsSourceGeneratorProject>true</IsSourceGeneratorProject>
+
+	</PropertyGroup>
+
+</Project>

@@ -138,12 +138,16 @@ namespace {MSLoggingNamespace}
 			{
 				tempFullName.Push(((ClassDeclarationSyntax)tempCurCls).Identifier.ToString());
 			}
-			else if (tempCurCls.IsKind(SyntaxKind.NamespaceDeclaration) || tempCurCls.IsKind(SyntaxKind.FileScopedNamespaceDeclaration))
+			else if (isFileScopedNamespace(tempCurCls))
 			{
+#if VS2019
+				tempFullName.Push(((NamespaceDeclarationSyntax)tempCurCls).Name.ToString());
+#else
 				if (tempCurCls.IsKind(SyntaxKind.FileScopedNamespaceDeclaration))
 					isFileScoped = true;
 
 				tempFullName.Push(((BaseNamespaceDeclarationSyntax)tempCurCls).Name.ToString());
+#endif
 			}
 
 			tempCurCls = tempCurCls.Parent;
@@ -154,6 +158,18 @@ namespace {MSLoggingNamespace}
 			: string.Join(".", tempFullName);
 
 		return (@namespace != null, isFileScoped, @namespace);
+
+		static bool isFileScopedNamespace(SyntaxNode tempCurCls)
+		{
+			if (tempCurCls.IsKind(SyntaxKind.NamespaceDeclaration))
+				return true;
+
+#if VS2019
+			return false;
+#else
+			return tempCurCls.IsKind(SyntaxKind.FileScopedNamespaceDeclaration);
+#endif
+		}
 	}
 
 	//static int GenerateMaximumLoggerDefineParameters()

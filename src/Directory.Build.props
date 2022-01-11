@@ -1,5 +1,7 @@
 <Project>
 
+	<Import Project="./.build/variables.props"/>
+
 	<PropertyGroup Label="Project Defaults">
 
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -21,7 +23,7 @@
 	
 	</PropertyGroup>
 
-	<PropertyGroup Label="Source Generator Project PropertyGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('.SourceGenerator'))">
+	<PropertyGroup Label="Source Generator Project PropertyGroup Defaults" Condition="$(IsSourceGeneratorProject)">
 
 		<IsPackable>true</IsPackable>
 
@@ -34,7 +36,7 @@
 
 	</PropertyGroup>
 
-	<ItemGroup Label="Source Generator Project ItemGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('.SourceGenerator'))">
+	<ItemGroup Label="Source Generator Project ItemGroup Defaults" Condition="$(IsSourceGeneratorProject)">
 		
 		<None Include="../.build/Purview-Icon-128x128.png" Pack="true" PackagePath="" />
 
@@ -45,18 +47,17 @@
 		<!-- Package the generator in the analyzer directory of the nuget package -->
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" PrivateAssets="all" />
 
 	</ItemGroup>
 
-	<PropertyGroup Label="Testing Project PropertyGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('Tests'))">
+	<PropertyGroup Label="Testing Project PropertyGroup Defaults" Condition="$(IsTestProject)">
 
 		<NoWarn>IDE0007;$(NoWarn)</NoWarn>
 
 	</PropertyGroup>
 
-	<ItemGroup Label="Testing Project ItemGroup Defaults" Condition="$(MSBuildProjectName.EndsWith('Tests'))">
+	<ItemGroup Label="Testing Project ItemGroup Defaults" Condition="$(IsTestProject)">
 
 		<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
 
@@ -75,7 +76,7 @@
 
 	</ItemGroup>
 
-	<PropertyGroup Label="NuGet Defaults" Condition="'$(IsPackable)' == 'true'">
+	<PropertyGroup Label="NuGet Defaults" Condition="$(IsPackable)">
 
 		<Authors>Kieron Lanning</Authors>
 		<Company>KJL Solutions Ltd.</Company>

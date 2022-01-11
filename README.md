@@ -14,9 +14,14 @@ Reference the source generator in your CSPROJ file:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.9.1-prerelease" />
+  <!-- For VS2022 -->
+  <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.9.2.1-prerelease" />
+  <!-- For VS2019 -->
+  <PackageReference Include="Purview.Logging.SourceGenerator.VS2019" Version="0.9.2.1-prerelease" />
 </ItemGroup>
 ```
+
+*Found an issue using VS2019/ .NET 5 SDK that requires a different build of the generator. You may have better luck, but if you encounter issues with Microsoft.CodeAnalysis.CSharp version 4 then using the VS2019 version.* 
 
 Create an `interface` (`public` or `internal`), make sure the name ends with any of the following (**case-sensitive**):
 
