@@ -117,9 +117,12 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			? $"{@namespace}."
 			: null;
 
-		// Append an internal class definition that implements the interface, and
+		// Append the debugger step through to prevent the debugger from stepping into the code...
+		// it's largely irrevent to any debugging session anyway...then
+		// ...append an internal class definition that implements the interface, and
 		// a field of ILogger<T> where T is the interface type.
 		builder
+			.AppendLine("[System.Diagnostics.DebuggerStepThroughAttribute]")
 			.Append("sealed partial class ")
 			.Append(classDefinitionName)
 			.Append(" : ")

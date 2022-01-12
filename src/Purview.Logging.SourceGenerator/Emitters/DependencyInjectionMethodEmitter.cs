@@ -28,6 +28,7 @@ sealed class DependencyInjectionMethodEmitter
 
 		// Start class.
 		builder
+			.AppendLine("[System.Diagnostics.DebuggerStepThroughAttribute]")
 			.AppendLine("[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]")
 			.Append("static ");
 
