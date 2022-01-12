@@ -2,36 +2,27 @@
 
 .NET Logging Source Generator, used for generating [LoggerMessage](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/loggermessage)-based High Performance logging from a custom interface.
 
+## What problem does this solve?
+
+Creating **readable**, **performant**, **testable** logging with **minimum effort**. 
+
 The interface-based approach has a few key benefits:
 
-* allows better testing through the use of mocks and assertions in your tests
+* better testing through the use of mocks and assertions in your tests
 * interfaces and their methods are also more readable than `LogXXX` and strings.
 * natively supports DI.
 
-## How to
+Turns this:
 
-Reference the source generator in your CSPROJ file:
-
-```xml
-<ItemGroup>
-  <!-- For VS2022 -->
-  <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.9.2.1-prerelease" />
-  <!-- For VS2019 -->
-  <PackageReference Include="Purview.Logging.SourceGenerator.VS2019" Version="0.9.2.1-prerelease" />
-</ItemGroup>
+```c#
+_logger.LogInformation("Received A Request To Process {State}", e.SomeData);
 ```
 
-*Found an issue using VS2019/ .NET 5 SDK that requires a different build of the generator. You may have better luck, but if you encounter issues with Microsoft.CodeAnalysis.CSharp version 4 then using the VS2019 version.* 
+into:
 
-Create an `interface` (`public` or `internal`), make sure the name ends with any of the following (**case-sensitive**):
-
-* `Log`
-* `Logs`
-* `Logger`
-
-Call `services.AddLog<TInterfaceType>()` on your DI registration and you're good to go! Inject or resolve as you see fit.
-
-Currently you must have the `Microsoft.Extensions.DepdencyInjection` and `Microsoft.Extensions.Logging` (version 5 or higher is supported) packages installed along with the `Purview.Logging.SourceGenerator` package in your target project.
+```c#
+_logger.ReceivedRequest(e.SomeData);
+```
 
 ## Quick demo:
 
@@ -56,6 +47,8 @@ public interface IProcessingServiceLogs
 }
 ```
 
+Create an `interface` (`public` or `internal`). Log interfaces must end with `Log`, `Logs` or `Logger` (case-sensitive) to be picked up by the source generator.
+
 Notice here we're also using `IDisposable` for [scoped](https://docs.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line#log-scopes)-supported logging.
 
 ### Register with DI
@@ -64,7 +57,7 @@ Notice here we're also using `IDisposable` for [scoped](https://docs.microsoft.c
 services.AddLog<IProcessingServiceLogs>() // this is an auto-generated extension method.
 ```
 
-### Use... !
+### ...Log!
 
 ```c#
 sealed class ProcessingService
@@ -79,6 +72,8 @@ sealed class ProcessingService
   public void Process(Guid contextId, SomeData someData)
   {
     var sw = Stopwatch.StartNew();
+    // Note here we're using the scoped based log event,
+    // so all other logs will contain the contextId. 
     using (_logs.BeginProcessing(contextId))
     {
       if (string.IsNullOrWhiteSpace(someData.Payload))
@@ -102,7 +97,7 @@ sealed class ProcessingService
 }
 ```
 
-### Testing...!
+### How does testing work?
 
 Full example is in the `DemoService.UnitTests` project, this is just the abridged version. 
 
@@ -135,6 +130,23 @@ static IProcessingServiceLogs CreateLogs()
   => Substitute.For<IProcessingServiceLogs>();
 ```
 
+### Reference the NuGet package
+
+Reference the appropriate NuGet package in your CSPROJ file:
+
+```xml
+<ItemGroup>
+  <!-- For VS2022 -->
+  <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.9.3-prerelease" />
+  <!-- For VS2019 -->
+  <PackageReference Include="Purview.Logging.SourceGenerator.VS2019" Version="0.9.3-prerelease" />
+</ItemGroup>
+```
+
+*Found an issue using VS2019/ .NET 5 SDK that requires a different build of the generator. You may have better luck, but if you encounter issues with `Microsoft.CodeAnalysis.CSharp` version 4 missing then using the VS2019 version.* 
+
+Currently you must have the `Microsoft.Extensions.DepdencyInjection` and `Microsoft.Extensions.Logging` (version 5 or higher) packages installed along with the `Purview.Logging.SourceGenerator` package in your target project.
+
 ## Log Event Configuration
 
 By default each assembly where a logging interface is defined get two attributes generated that can be used to control the log event:
@@ -157,7 +169,7 @@ public interface IImportantLogger {  }	// Your interface.
 
 public partial class ImportantLoggerCore : IImportantLogger {} // Generated logger.
 
-partial class ImportantLoggerCore 
+partial class ImportantLoggerCore // Mark your class as file and give it the same name...
 {
   public void MyAdditionalMethod()
   {
@@ -199,7 +211,9 @@ using (Logger.BeginScope("TestStart => Started: {Started}", DateTimeOffset.UtcNo
 
 ### BenchmarkDotNet Results 
 
-It appears as though the interface approach is nearly always fast than the extension method approach, and certainly always faster than directly calling `ILogger`.
+It appears as though the interface approach is nearly always as fast (or faster depending on the runtime) than the extension method approach, and certainly always faster than directly calling `ILogger`.
+
+This project is available in the repo as the `LoggingBenchmark` project.
 
 ```
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.22000
