@@ -32,11 +32,11 @@ sealed partial class LogMethodEmitter
 		return _context.Compilation.GetTypeByMetadataName($"{Helpers.MSLoggingNamespace}.LogDefineOptions") != null;
 	}
 
-	public string? Generate(CancellationToken cancellationToken = default)
+	public (string? source, bool isNullable) Generate(CancellationToken cancellationToken = default)
 	{
 		var methodReturnType = GetReturnType();
 		if (methodReturnType == MethodReturnType.None)
-			return null;
+			return (null, false);
 
 		List<ParameterData> parameterData = new();
 		ParameterData? exceptionData = null;
@@ -68,7 +68,7 @@ sealed partial class LogMethodEmitter
 			{
 				_context.ReportUnableToDetermineExceptionParameter(_methodDeclaration.GetLocation(), parameterData.Count, exceptionData.Value.Name);
 
-				return null;
+				return (null, false);
 			}
 		}
 
@@ -76,7 +76,7 @@ sealed partial class LogMethodEmitter
 		{
 			_context.ReportMaximumNumberOfParmaetersExceeded(_methodDeclaration.GetLocation(), methodName, paramsWithoutException.Length);
 
-			return null;
+			return (null, false);
 		}
 
 		var logSettings = LoggerSettingsParser.GetLogSettings(_context, _methodDeclaration, cancellationToken);
@@ -93,7 +93,7 @@ sealed partial class LogMethodEmitter
 		var methodParams = paramsWithoutException.Select(p => p.Type).ToArray();
 		var actionParams = new[] { Helpers.MSLoggingILoggerNamespaceAndTypeName }
 			.Concat(methodParams)
-			.Concat(new[] { methodReturnType == MethodReturnType.Void ? $"{_exceptionType}?" : Helpers.IDisposableType });
+			.Concat(new[] { methodReturnType == MethodReturnType.Void ? $"{_exceptionType}" : Helpers.IDisposableType });
 
 		// Define the field name - we'll append the method index, just to avoid any clashes.
 		// i.e. LogAThing(int) and LogAThing(string) would create the same field name.
@@ -116,7 +116,7 @@ sealed partial class LogMethodEmitter
 
 		AppendMethodBody(methodReturnType, exceptionData, paramsWithoutException, builder, loggerMessageFieldName, methodLogLevel);
 
-		return builder.ToString();
+		return (builder.ToString(), parameterData.Any(p => p.IsNullable));
 	}
 
 	static string? BuildMessage(string methodName, IEnumerable<ParameterData> paramsWithoutException)
@@ -130,7 +130,7 @@ sealed partial class LogMethodEmitter
 				if (char.IsLower(pName[0]))
 					pName = char.ToUpperInvariant(pName[0]) + pName.Substring(1);
 
-				return "{" + pName + "}";
+				return pName + ": {" + pName + "}";
 			}));
 		}
 
@@ -187,7 +187,7 @@ sealed partial class LogMethodEmitter
 
 		var isException = IsException(typeInfo.Type);
 
-		return new(paramterName, parameterType, isException);
+		return new(paramterName, parameterType, isException, isNullable);
 	}
 
 	static bool IsException(ITypeSymbol? t)
@@ -208,5 +208,5 @@ sealed partial class LogMethodEmitter
 		None
 	}
 
-	readonly record struct ParameterData(string Name, string Type, bool IsException);
+	readonly record struct ParameterData(string Name, string Type, bool IsException, bool IsNullable);
 }

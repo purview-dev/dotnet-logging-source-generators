@@ -57,13 +57,13 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			var hash = GenerateHash($"{source.@namespace}.{source.interfaceName}");
 			var filename = $"{source.interfaceName}_{hash}";
 
-			context.AddSource($"{filename}.gen.cs", source.source);
+			context.AddSource($"{filename}.g.cs", source.source);
 
 			DependencyInjectionMethodEmitter dependencyInjectionMethod = new(source.interfaceName, source.className, source.@namespace, isInterfacePublic);
 
 			var diSource = dependencyInjectionMethod.Generate();
 
-			context.AddSource($"{filename}Extensions.gen.cs", diSource);
+			context.AddSource($"{filename}Extensions.g.cs", diSource);
 		}
 
 		static string GenerateHash(string inputString)
@@ -82,6 +82,8 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 
 		StringBuilder builder = new();
 		builder
+			.AppendLine("#pragma warning disable CS8669")
+			.AppendLine("#pragma warning disable CS8625")
 			.AppendLine("#pragma warning disable CA1812")
 			.AppendLine();
 
@@ -156,6 +158,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		// ...implement the interface!
 		var memberIndex = 0;
 		var generatedLogEventMethod = false;
+		//var isNullable = false;
 		foreach (var memberSyntax in interfaceDeclaration.Members)
 		{
 			memberIndex++;
@@ -181,12 +184,14 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			{
 				LogMethodEmitter emitter = new(method, context, memberIndex, defaultLevel);
 				var methodImplementation = emitter.Generate(cancellationToken);
-				if (methodImplementation == null)
+				if (methodImplementation.source == null)
 					continue;
 
 				generatedLogEventMethod = true;
 
-				builder.AppendLine(methodImplementation);
+				builder.AppendLine(methodImplementation.source);
+				//if (methodImplementation.isNullable)
+				//	isNullable = true;
 			}
 		}
 
@@ -195,14 +200,27 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			ReportHelpers.ReportNoLogEventsGenerated(context, interfaceDeclaration);
 		}
 
+		// End class.
 		builder.AppendLine("}");
 
+		// End namespace, if it's not file-scoped.
 		if (hasNamespace && !isFileScoped)
 			builder.AppendLine("}");
 
 		builder
 			.AppendLine()
-			.AppendLine("#pragma warning restore CA1812");
+			.AppendLine("#pragma warning restore CA1812")
+			.AppendLine("#pragma warning restore CS8625")
+			.AppendLine("#pragma warning restore CS8669");
+
+		//if (isNullable)
+		//{
+		//	// It's too unreliable to determine if nullable is enabled or not.
+		//	// The 'Define' exception is nullable, but there is no way to tell if it's available or not.
+
+		//	//builder.Insert(0, $"#nullable enable{Environment.NewLine}");
+		//	//builder.AppendLine("#nullable restore");
+		//}
 
 		// Add a final blank line.
 		builder.AppendLine();
