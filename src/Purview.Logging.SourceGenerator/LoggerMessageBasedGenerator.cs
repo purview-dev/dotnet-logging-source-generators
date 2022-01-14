@@ -82,7 +82,8 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 
 		StringBuilder builder = new();
 		builder
-			.AppendLine("#pragma warning disable CS8669")
+			.AppendLine("#nullable disable")
+			//.AppendLine("#pragma warning disable CS8669")
 			.AppendLine("#pragma warning disable CS8625")
 			.AppendLine("#pragma warning disable CA1812")
 			.AppendLine();
@@ -125,6 +126,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		// a field of ILogger<T> where T is the interface type.
 		builder
 			.AppendLine("[System.Diagnostics.DebuggerStepThroughAttribute]")
+			.AppendLine("[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]")
 			.Append("sealed partial class ")
 			.Append(classDefinitionName)
 			.Append(" : ")
@@ -211,7 +213,8 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			.AppendLine()
 			.AppendLine("#pragma warning restore CA1812")
 			.AppendLine("#pragma warning restore CS8625")
-			.AppendLine("#pragma warning restore CS8669");
+			//.AppendLine("#pragma warning restore CS8669")
+			.AppendLine("#nullable restore");
 
 		//if (isNullable)
 		//{

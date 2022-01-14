@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<LangVersion>9.0</LangVersion>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<TargetFrameworks>net462;net472;net48;net5.0;net6.0</TargetFrameworks>
+	</PropertyGroup>
+
+	<ItemGroup Label=".NET 5 / .NET Framework 4.7.2/ .NET Framework 4.6.2 Dependencies" Condition="'$(TargetFramework)' == 'net5.0' OR '$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net462'">
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
+	</ItemGroup>
+
+	<ItemGroup Label=".NET 6 / .NET Framework 4.8 Dependencies" Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'net48'">
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Purview.Logging.SourceGenerator.VS2019\Purview.Logging.SourceGenerator.VS2019.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+
+		<!--<PackageReference Include="Purview.Logging.SourceGenerator.VS2019" Version="0.9.3-prerelease" />-->
+	</ItemGroup>
+
+</Project>

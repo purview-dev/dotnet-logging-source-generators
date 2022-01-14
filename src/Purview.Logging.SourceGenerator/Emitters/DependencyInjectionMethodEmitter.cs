@@ -23,12 +23,17 @@ sealed class DependencyInjectionMethodEmitter
 
 		// Start namespace (full-scoped, not file-scoped).
 		builder
+			.AppendLine("#nullable disable")
+			.AppendLine();
+
+		builder
 			.AppendLine("namespace Microsoft.Extensions.DependencyInjection")
 			.AppendLine("{");
 
 		// Start class.
 		builder
 			.AppendLine("[System.Diagnostics.DebuggerStepThroughAttribute]")
+			.AppendLine("[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]")
 			.AppendLine("[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]")
 			.Append("static ");
 
@@ -70,6 +75,10 @@ sealed class DependencyInjectionMethodEmitter
 		// End namespace.
 		builder
 			.AppendLine("}")
+			.AppendLine();
+
+		builder
+			.AppendLine("#nullable restore")
 			.AppendLine();
 
 		return builder.ToString();

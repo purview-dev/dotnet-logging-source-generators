@@ -41,6 +41,8 @@ static class Helpers
 
 	// Attributes are internal to avoid collisions.
 	public const string AttributeDefinitions = @$"
+#nullable disable
+
 using System;
 
 namespace {MSLoggingNamespace}
@@ -48,6 +50,8 @@ namespace {MSLoggingNamespace}
 	/// <summary>
 	/// Controls the default <see cref=""{MSLoggingLogLevelTypeName}""/> used when generating log events.
 	/// </summary>
+	[System.Diagnostics.DebuggerStepThroughAttribute]
+	[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
 	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Interface | AttributeTargets.Assembly, AllowMultiple = false)]
 	sealed class {PurviewDefaultLogLevelAttributeNameWithSuffix} : Attribute
 	{{
@@ -69,6 +73,8 @@ namespace {MSLoggingNamespace}
 	/// <summary>
 	/// Overrides/ configures settings for log event generation.
 	/// </summary>
+	[System.Diagnostics.DebuggerStepThroughAttribute]
+	[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
 	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 	sealed class {PurviewLogEventAttributeNameWithSuffix} : Attribute
 	{{
@@ -82,7 +88,7 @@ namespace {MSLoggingNamespace}
 		/// The name of the <see cref=""EventId.Name""/> to use,
 		/// if this value is not set then the method name is used.
 		/// </summary>
-		public string? Name {{ get; set; }}
+		public string Name {{ get; set; }}
 
 		/// <summary>
 		/// The <see cref=""{MSLoggingLogLevelTypeName}""/> used for generation. If non is specified,
@@ -108,9 +114,11 @@ namespace {MSLoggingNamespace}
 		///		""Operation1: operationId: {{OperationId}}, value: {{Value}}""
 		/// </code>
 		/// </summary>
-		public string? Message {{ get; set; }}
+		public string Message {{ get; set; }}
 	}}
 }}
+
+#nullable restore
 ";
 
 	static public INamedTypeSymbol? GetAttributeSymbol(string attributeTypeName, GeneratorExecutionContext context, CancellationToken cancellationToken = default)

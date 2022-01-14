@@ -10,7 +10,7 @@
 		<IsPackable>false</IsPackable>
 
 		<!-- Set this to true to keep the generated files. -->
-		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
 
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>

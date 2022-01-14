@@ -93,7 +93,8 @@ sealed partial class LogMethodEmitter
 		var methodParams = paramsWithoutException.Select(p => p.Type).ToArray();
 		var actionParams = new[] { Helpers.MSLoggingILoggerNamespaceAndTypeName }
 			.Concat(methodParams)
-			.Concat(new[] { methodReturnType == MethodReturnType.Void ? $"{_exceptionType}" : Helpers.IDisposableType });
+			.Concat(new[] { methodReturnType == MethodReturnType.Void ? _exceptionType : Helpers.IDisposableType });
+			//.Concat(new[] { methodReturnType == MethodReturnType.Void ? $"{_exceptionType}?" : Helpers.IDisposableType }); // Cause' nullable hell.
 
 		// Define the field name - we'll append the method index, just to avoid any clashes.
 		// i.e. LogAThing(int) and LogAThing(string) would create the same field name.
@@ -182,8 +183,10 @@ sealed partial class LogMethodEmitter
 			isNullable = true;
 		}
 
-		if (isNullable)
-			parameterType += "?";
+		// We're ignoring all things nullable.
+
+		//if (isNullable)
+		//	parameterType += "?";
 
 		var isException = IsException(typeInfo.Type);
 
