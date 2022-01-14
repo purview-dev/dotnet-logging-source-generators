@@ -13,7 +13,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 
 	public void Initialize(GeneratorInitializationContext context)
 	{
-		context.RegisterForPostInitialization(context => context.AddSource("_LoggerGenAttributes.cs", Helpers.AttributeDefinitions));
+		context.RegisterForPostInitialization(context => context.AddSource("_LoggerGenAttributes.g.cs", Helpers.AttributeDefinitions));
 		context.RegisterForSyntaxNotifications(() => new LoggerMessageSyntaxReceiver());
 	}
 
