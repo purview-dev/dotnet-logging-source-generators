@@ -4,4 +4,8 @@
 
 // This will change the default LogLevel from Information to Debug for all 
 // log events generated in this assembly.
-// [assembly: DefaultLogLevel(defaultLevel: LogLevel.Debug)]
+// It also disables the DI log generation.
+//[assembly: DefaultLogEventSettings(
+//	DefaultLevel = LogLevel.Debug,
+//	GenerateAddLogDIMethod = false
+//)]

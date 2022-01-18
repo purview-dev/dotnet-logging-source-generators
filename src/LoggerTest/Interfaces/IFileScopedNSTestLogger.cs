@@ -2,7 +2,7 @@
 
 namespace LoggerTest.Interfaces;
 
-[DefaultLogLevel(LogLevel.Critical)]
+[DefaultLogEventSettings(DefaultLevel = LogLevel.Critical)]
 public interface IFileScopedNSTestLogger
 {
 	[LogEvent(Id = 5959)]

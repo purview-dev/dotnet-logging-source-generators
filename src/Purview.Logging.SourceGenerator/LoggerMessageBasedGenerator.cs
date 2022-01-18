@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using System;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,7 +16,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 
 	public void Initialize(GeneratorInitializationContext context)
 	{
-		context.RegisterForPostInitialization(context => context.AddSource("_LoggerGenAttributes.g.cs", Helpers.AttributeDefinitions));
+		context.RegisterForPostInitialization(context => context.AddSource("LogAttributes.g.cs", Helpers.AttributeDefinitions));
 		context.RegisterForSyntaxNotifications(() => new LoggerMessageSyntaxReceiver());
 	}
 
@@ -26,21 +29,22 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			return;
 		}
 
-		// Attempt to find a default log level defined in the assembly.
 		var defaultLogLevelAttribute = context.Compilation.Assembly
 			.GetAttributes()
 			.FirstOrDefault(attributeData =>
 			{
 				var name = attributeData.AttributeClass?.ToString();
-				return name == $"{Helpers.MSLoggingNamespace}.{Helpers.PurviewDefaultLogLevelAttributeName}"
-					|| name == $"{Helpers.MSLoggingNamespace}.{Helpers.PurviewDefaultLogLevelAttributeNameWithSuffix}";
+				return name == $"{Helpers.MSLoggingNamespace}.{Helpers.PurviewDefaultLogEventSettingsAttributeName}"
+					|| name == $"{Helpers.MSLoggingNamespace}.{Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix}";
 			});
 
-		if (defaultLogLevelAttribute is not null)
+		var generateAddLogDIMethod = true;
+		if (defaultLogLevelAttribute != null)
 		{
-			var defaultLevelArg = defaultLogLevelAttribute.ConstructorArguments.FirstOrDefault().Value as int?;
-			if (defaultLevelArg.HasValue && Helpers.LogLevelValuesToNames.ContainsKey(defaultLevelArg.Value))
-				_defaultLevel = Helpers.LogLevelValuesToNames[defaultLevelArg.Value];
+			(string defaultLogLevel, bool includeDI) = GetDefaultLogEventValues(defaultLogLevelAttribute, context.CancellationToken);
+
+			_defaultLevel = defaultLogLevel;
+			generateAddLogDIMethod = includeDI;
 		}
 
 		foreach (var interfaceDeclaration in receiver!.CandidateInterfaces!)
@@ -59,6 +63,9 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 
 			context.AddSource($"{filename}.g.cs", source.source);
 
+			if (!generateAddLogDIMethod)
+				continue;
+			
 			DependencyInjectionMethodEmitter dependencyInjectionMethod = new(source.interfaceName, source.className, source.@namespace, isInterfacePublic);
 
 			var diSource = dependencyInjectionMethod.Generate();
@@ -75,7 +82,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 
 	(string source, string path, string interfaceName, string className, string? @namespace) GenerateSource(InterfaceDeclarationSyntax interfaceDeclaration, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
 	{
-		var defaultLevel = GetDefaultLevel(interfaceDeclaration, context, cancellationToken);
+		(string defaultLogLevel, bool _) = GetDefaultLevel(interfaceDeclaration, context, cancellationToken);
 
 		// We're disabling CA1812 here - https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1812
 		// which warns us about non-instantiated classes. It's used via DI.
@@ -83,7 +90,6 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		StringBuilder builder = new();
 		builder
 			.AppendLine("#nullable disable")
-			//.AppendLine("#pragma warning disable CS8669")
 			.AppendLine("#pragma warning disable CS8625")
 			.AppendLine("#pragma warning disable CA1812")
 			.AppendLine();
@@ -184,7 +190,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 
 			if (memberSyntax is MethodDeclarationSyntax method)
 			{
-				LogMethodEmitter emitter = new(method, context, memberIndex, defaultLevel);
+				LogMethodEmitter emitter = new(method, context, memberIndex, defaultLogLevel);
 				var methodImplementation = emitter.Generate(cancellationToken);
 				if (methodImplementation.source == null)
 					continue;
@@ -213,7 +219,6 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			.AppendLine()
 			.AppendLine("#pragma warning restore CA1812")
 			.AppendLine("#pragma warning restore CS8625")
-			//.AppendLine("#pragma warning restore CS8669")
 			.AppendLine("#nullable restore");
 
 		//if (isNullable)
@@ -231,48 +236,61 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		return (source: builder.ToString(), path: namespacePrefix + classDefinitionName, interfaceName: loggerInterfaceName, className: classDefinitionName, @namespace: namespacePrefix);
 	}
 
-	string GetDefaultLevel(InterfaceDeclarationSyntax interfaceDeclaration, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
+	(string defaultLogLevel, bool includeDI) GetDefaultLevel(InterfaceDeclarationSyntax interfaceSyntax, GeneratorExecutionContext context, CancellationToken cancellationToken)
 	{
-		var defaultLogEventAttribute = Helpers.GetAttributeSymbol(Helpers.PurviewDefaultLogLevelAttributeNameWithSuffix, context, cancellationToken);
+		var defaultLogEventAttribute = Helpers.GetAttributeSymbol(Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix, context, cancellationToken);
 		if (defaultLogEventAttribute == null)
 		{
 			// Attribute not defined.
-			return _defaultLevel;
+			return (_defaultLevel, true);
 		}
 
-		var model = context.Compilation.GetSemanticModel(interfaceDeclaration.SyntaxTree);
-		var declaredSymbol = model.GetDeclaredSymbol(interfaceDeclaration, cancellationToken: cancellationToken);
+		var model = context.Compilation.GetSemanticModel(interfaceSyntax.SyntaxTree);
+		var declaredSymbol = model.GetDeclaredSymbol(interfaceSyntax, cancellationToken: cancellationToken);
 		if (declaredSymbol == null)
 		{
 			// This doesn't sound good...
-			return _defaultLevel;
+			return (_defaultLevel, true);
 		}
 
 		var attribute = declaredSymbol.GetAttributes().SingleOrDefault(m =>
-			m.AttributeClass?.Name == Helpers.PurviewDefaultLogLevelAttributeName ||
-			m.AttributeClass?.Name == Helpers.PurviewDefaultLogLevelAttributeNameWithSuffix);
+			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeName ||
+			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix);
 
 		if (attribute == null)
-			return _defaultLevel;
+			return (_defaultLevel, true);
 
+		return GetDefaultLogEventValues(attribute, cancellationToken);
+	}
+
+	(string defaultLogLevel, bool includeDI) GetDefaultLogEventValues(AttributeData attribute, CancellationToken cancellationToken)
+	{
 		if (attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken) is not AttributeSyntax attributeSyntax)
-			return _defaultLevel;
+			return (_defaultLevel, true);
 
 		if (attributeSyntax.ArgumentList?.Arguments.Count == 0)
-			return _defaultLevel;
+			return (_defaultLevel, true);
 
 		var args = attributeSyntax.ArgumentList!.Arguments;
+		var defaultLevel = _defaultLevel;
+		var includeDI = true;
 		foreach (var arg in args)
 		{
-			var value = model.GetConstantValue(arg.Expression, cancellationToken);
-			if (!value.HasValue)
-				continue;
-
-			if (value.Value is int id && Helpers.LogLevelValuesToNames.ContainsKey(id))
-				return Helpers.LogLevelValuesToNames[id];
+			var argName = arg.NameEquals!.Name.Identifier.ValueText;
+			var value = arg.Expression.NormalizeWhitespace().ToFullString();
+			if (argName == "DefaultLevel")
+			{
+				if (Helpers.ValidLogLevels.Contains(value))
+					defaultLevel = value;
+			}
+			else if (argName == "GenerateAddLogDIMethod")
+			{
+				if (bool.TryParse(value, out var generateAddLogDIMethod))
+					includeDI = generateAddLogDIMethod;
+			}
 		}
 
-		return _defaultLevel;
+		return (defaultLevel, includeDI);
 	}
 
 	static string GetClassName(InterfaceDeclarationSyntax interfaceDeclaration)

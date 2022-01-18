@@ -16,8 +16,8 @@ static class Helpers
 
 	public const string PurviewLoggingNamespace = "Purview.Logging.SourceGenerator";
 
-	public const string PurviewDefaultLogLevelAttributeName = "DefaultLogLevel";
-	public const string PurviewDefaultLogLevelAttributeNameWithSuffix = $"{PurviewDefaultLogLevelAttributeName}Attribute";
+	public const string PurviewDefaultLogEventSettingsAttributeName = "DefaultLogEventSettings";
+	public const string PurviewDefaultLogEventSettingsAttributeNameWithSuffix = $"{PurviewDefaultLogEventSettingsAttributeName}Attribute";
 
 	public const string PurviewLogEventAttributeName = "LogEvent";
 	public const string PurviewLogEventAttributeNameWithSuffix = $"{PurviewLogEventAttributeName}Attribute";
@@ -53,21 +53,18 @@ namespace {MSLoggingNamespace}
 	[System.Diagnostics.DebuggerStepThroughAttribute]
 	[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
 	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Interface | AttributeTargets.Assembly, AllowMultiple = false)]
-	sealed class {PurviewDefaultLogLevelAttributeNameWithSuffix} : Attribute
+	sealed class {PurviewDefaultLogEventSettingsAttributeNameWithSuffix} : Attribute
 	{{
-		/// <summary>
-		/// Initializes a new <see cref=""{PurviewDefaultLogLevelAttributeNameWithSuffix}""/>
-		/// </summary>
-		/// <param name=""defaultLevel"">The default <see cref=""{MSLoggingLogLevelTypeName}""/> to use for generating log events.</param>
-		public {PurviewDefaultLogLevelAttributeNameWithSuffix}({MSLoggingLogLevelTypeName} defaultLevel)
-		{{
-			DefaultLevel = defaultLevel;
-		}}
-
 		/// <summary>
 		/// The default <see cref=""{MSLoggingLogLevelTypeName}""/> used for generating log events.
 		/// </summary>
-		public {MSLoggingLogLevelTypeName} DefaultLevel {{ get; }}
+		public {MSLoggingLogLevelTypeName} DefaultLevel {{ get; set; }}
+
+		/// <summary>
+		/// Indicates if the generator should include the .AddLog<T> method required
+		/// for use in log implementation registrion using the IServiceCollection.
+		/// </summary>
+		public bool GenerateAddLogDIMethod {{ get; set; }} = true;
 	}}
 
 	/// <summary>
@@ -92,7 +89,7 @@ namespace {MSLoggingNamespace}
 
 		/// <summary>
 		/// The <see cref=""{MSLoggingLogLevelTypeName}""/> used for generation. If non is specified,
-		/// the <see cref=""{PurviewDefaultLogLevelAttributeNameWithSuffix}.DefaultLevel""/> is used.
+		/// the <see cref=""{PurviewDefaultLogEventSettingsAttributeNameWithSuffix}.DefaultLevel""/> is used.
 		/// </summary>
 		/// <remarks>
 		/// If the log event contains an <see cref=""Exception""/> and
