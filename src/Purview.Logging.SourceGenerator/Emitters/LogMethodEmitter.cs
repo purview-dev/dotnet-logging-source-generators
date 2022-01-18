@@ -9,20 +9,21 @@ sealed partial class LogMethodEmitter
 {
 	const string _voidReturnType = "void";
 	readonly static string _exceptionType = typeof(Exception).FullName;
-
+	readonly string _loggerName;
 	readonly MethodDeclarationSyntax _methodDeclaration;
 	readonly GeneratorExecutionContext _context;
 	readonly int _methodIndex;
-	readonly string _defaultLevel;
+	readonly DefaultLoggerSettings _defaultLoggerSettings;
 
 	readonly Lazy<bool> _hasLogOptions;
 
-	public LogMethodEmitter(MethodDeclarationSyntax methodDeclaration, GeneratorExecutionContext context, int methodIndex, string defaultLevel)
+	public LogMethodEmitter(string loggerName, MethodDeclarationSyntax methodDeclaration, GeneratorExecutionContext context, int methodIndex, DefaultLoggerSettings defaultLoggerSettings)
 	{
+		_loggerName = loggerName;
 		_methodDeclaration = methodDeclaration;
 		_context = context;
 		_methodIndex = methodIndex;
-		_defaultLevel = defaultLevel;
+		_defaultLoggerSettings = defaultLoggerSettings;
 
 		_hasLogOptions = new(HasLogOptionsDefined);
 	}
@@ -105,7 +106,7 @@ sealed partial class LogMethodEmitter
 		// Get the default local log level, if we know we contained an exception,
 		// set the default to Error, otherwise use the configured default.
 		var localDefault = exceptionData == null
-			? _defaultLevel
+			? _defaultLoggerSettings.LogLevel
 			: "Error";
 
 		// If the method has a defined level use it, or use the local default.

@@ -10,7 +10,7 @@ The interface-based approach has a few key benefits:
 
 * better testing through the use of mocks and assertions in your tests
 * interfaces and their methods are also more readable than `LogXXX` and strings.
-* natively supports DI.
+* optionally supports DI method generation.
 
 Turns this:
 

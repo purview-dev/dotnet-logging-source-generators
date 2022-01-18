@@ -1,7 +1,4 @@
-﻿using System;
-using System.Reflection;
-using System.Text;
-using System.Threading;
+﻿using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,7 +9,7 @@ namespace Purview.Logging.SourceGenerator;
 [Generator]
 sealed class LoggerMessageBasedGenerator : ISourceGenerator
 {
-	string _defaultLevel = Helpers.DefaultLogLevel;
+	DefaultLoggerSettings _defaultLoggerSettings = new();
 
 	public void Initialize(GeneratorInitializationContext context)
 	{
@@ -38,14 +35,8 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 					|| name == $"{Helpers.MSLoggingNamespace}.{Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix}";
 			});
 
-		var generateAddLogDIMethod = true;
 		if (defaultLogLevelAttribute != null)
-		{
-			(string defaultLogLevel, bool includeDI) = GetDefaultLogEventValues(defaultLogLevelAttribute, context.CancellationToken);
-
-			_defaultLevel = defaultLogLevel;
-			generateAddLogDIMethod = includeDI;
-		}
+			_defaultLoggerSettings = GetDefaultLogEventValues(defaultLogLevelAttribute, context.CancellationToken);
 
 		foreach (var interfaceDeclaration in receiver!.CandidateInterfaces!)
 		{
@@ -63,9 +54,9 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 
 			context.AddSource($"{filename}.g.cs", source.source);
 
-			if (!generateAddLogDIMethod)
+			if (!source.defaultLoggerSettings.GenerateAddLogDIMethod)
 				continue;
-			
+
 			DependencyInjectionMethodEmitter dependencyInjectionMethod = new(source.interfaceName, source.className, source.@namespace, isInterfacePublic);
 
 			var diSource = dependencyInjectionMethod.Generate();
@@ -80,9 +71,9 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		}
 	}
 
-	(string source, string path, string interfaceName, string className, string? @namespace) GenerateSource(InterfaceDeclarationSyntax interfaceDeclaration, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
+	(string source, string path, string interfaceName, string className, string? @namespace, DefaultLoggerSettings defaultLoggerSettings) GenerateSource(InterfaceDeclarationSyntax interfaceDeclaration, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
 	{
-		(string defaultLogLevel, bool _) = GetDefaultLevel(interfaceDeclaration, context, cancellationToken);
+		var defaultInterfaceLogSettings = GetDefaultLogSettings(interfaceDeclaration, context, cancellationToken);
 
 		// We're disabling CA1812 here - https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1812
 		// which warns us about non-instantiated classes. It's used via DI.
@@ -190,14 +181,14 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 
 			if (memberSyntax is MethodDeclarationSyntax method)
 			{
-				LogMethodEmitter emitter = new(method, context, memberIndex, defaultLogLevel);
-				var methodImplementation = emitter.Generate(cancellationToken);
-				if (methodImplementation.source == null)
+				LogMethodEmitter emitter = new(method, context, memberIndex, defaultInterfaceLogSettings);
+				var (source, _) = emitter.Generate(cancellationToken);
+				if (source == null)
 					continue;
 
 				generatedLogEventMethod = true;
 
-				builder.AppendLine(methodImplementation.source);
+				builder.AppendLine(source);
 				//if (methodImplementation.isNullable)
 				//	isNullable = true;
 			}
@@ -233,16 +224,23 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		// Add a final blank line.
 		builder.AppendLine();
 
-		return (source: builder.ToString(), path: namespacePrefix + classDefinitionName, interfaceName: loggerInterfaceName, className: classDefinitionName, @namespace: namespacePrefix);
+		return (
+			source: builder.ToString(),
+			path: namespacePrefix + classDefinitionName,
+			interfaceName: loggerInterfaceName,
+			className: classDefinitionName,
+			@namespace: namespacePrefix,
+			defaultLoggerSettings: defaultInterfaceLogSettings
+		);
 	}
 
-	(string defaultLogLevel, bool includeDI) GetDefaultLevel(InterfaceDeclarationSyntax interfaceSyntax, GeneratorExecutionContext context, CancellationToken cancellationToken)
+	DefaultLoggerSettings GetDefaultLogSettings(InterfaceDeclarationSyntax interfaceSyntax, GeneratorExecutionContext context, CancellationToken cancellationToken)
 	{
 		var defaultLogEventAttribute = Helpers.GetAttributeSymbol(Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix, context, cancellationToken);
 		if (defaultLogEventAttribute == null)
 		{
 			// Attribute not defined.
-			return (_defaultLevel, true);
+			return _defaultLoggerSettings;
 		}
 
 		var model = context.Compilation.GetSemanticModel(interfaceSyntax.SyntaxTree);
@@ -250,7 +248,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		if (declaredSymbol == null)
 		{
 			// This doesn't sound good...
-			return (_defaultLevel, true);
+			return _defaultLoggerSettings;
 		}
 
 		var attribute = declaredSymbol.GetAttributes().SingleOrDefault(m =>
@@ -258,22 +256,30 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix);
 
 		if (attribute == null)
-			return (_defaultLevel, true);
+			return _defaultLoggerSettings;
 
 		return GetDefaultLogEventValues(attribute, cancellationToken);
 	}
 
-	(string defaultLogLevel, bool includeDI) GetDefaultLogEventValues(AttributeData attribute, CancellationToken cancellationToken)
+	DefaultLoggerSettings GetDefaultLogEventValues(AttributeData attribute, CancellationToken cancellationToken)
 	{
 		if (attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken) is not AttributeSyntax attributeSyntax)
-			return (_defaultLevel, true);
+			return _defaultLoggerSettings;
 
 		if (attributeSyntax.ArgumentList?.Arguments.Count == 0)
-			return (_defaultLevel, true);
+			return _defaultLoggerSettings;
 
 		var args = attributeSyntax.ArgumentList!.Arguments;
-		var defaultLevel = _defaultLevel;
-		var includeDI = true;
+		var result = new DefaultLoggerSettings {
+			LogLevel = _defaultLoggerSettings.LogLevel,
+			GenerateAddLogDIMethod = _defaultLoggerSettings.GenerateAddLogDIMethod,
+			MessageTemplate = _defaultLoggerSettings.MessageTemplate,
+			IncludeContextInEventName = _defaultLoggerSettings.IncludeContextInEventName,
+			ContextSeparator = _defaultLoggerSettings.ContextSeparator,
+			ContextArgumentSeparator = _defaultLoggerSettings.ContextArgumentSeparator,
+			ArgumentSerparator = _defaultLoggerSettings.ArgumentSerparator
+		};
+
 		foreach (var arg in args)
 		{
 			var argName = arg.NameEquals!.Name.Identifier.ValueText;
@@ -281,16 +287,41 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			if (argName == "DefaultLevel")
 			{
 				if (Helpers.ValidLogLevels.Contains(value))
-					defaultLevel = value;
+					result.LogLevel = value;
 			}
 			else if (argName == "GenerateAddLogDIMethod")
 			{
 				if (bool.TryParse(value, out var generateAddLogDIMethod))
-					includeDI = generateAddLogDIMethod;
+					result.GenerateAddLogDIMethod = generateAddLogDIMethod;
+			}
+			else if (argName == "MessageTemplate")
+			{
+				if (!string.IsNullOrWhiteSpace(value))
+					result.MessageTemplate = value;
+			}
+			else if (argName == "IncludeContextInEventName")
+			{
+				if (bool.TryParse(value, out var includeContextInEventName))
+					result.IncludeContextInEventName = includeContextInEventName;
+			}
+			else if (argName == "ContextSeparator")
+			{
+				if (!string.IsNullOrWhiteSpace(value))
+					result.ContextSeparator = value;
+			}
+			else if (argName == "ContextArgumentSeparator")
+			{
+				if (!string.IsNullOrWhiteSpace(value))
+					result.ContextArgumentSeparator = value;
+			}
+			else if (argName == "ArgumentSerparator")
+			{
+				if (!string.IsNullOrWhiteSpace(value))
+					result.ArgumentSerparator = value;
 			}
 		}
 
-		return (defaultLevel, includeDI);
+		return result;
 	}
 
 	static string GetClassName(InterfaceDeclarationSyntax interfaceDeclaration)
