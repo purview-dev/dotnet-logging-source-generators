@@ -181,7 +181,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 
 			if (memberSyntax is MethodDeclarationSyntax method)
 			{
-				LogMethodEmitter emitter = new(method, context, memberIndex, defaultInterfaceLogSettings);
+				LogMethodEmitter emitter = new(loggerInterfaceName, method, context, memberIndex, defaultInterfaceLogSettings);
 				var (source, _) = emitter.Generate(cancellationToken);
 				if (source == null)
 					continue;
@@ -271,53 +271,59 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 
 		var args = attributeSyntax.ArgumentList!.Arguments;
 		var result = new DefaultLoggerSettings {
-			LogLevel = _defaultLoggerSettings.LogLevel,
+			LogLevelDefault = _defaultLoggerSettings.LogLevelDefault,
 			GenerateAddLogDIMethod = _defaultLoggerSettings.GenerateAddLogDIMethod,
 			MessageTemplate = _defaultLoggerSettings.MessageTemplate,
 			IncludeContextInEventName = _defaultLoggerSettings.IncludeContextInEventName,
 			ContextSeparator = _defaultLoggerSettings.ContextSeparator,
 			ContextArgumentSeparator = _defaultLoggerSettings.ContextArgumentSeparator,
-			ArgumentSerparator = _defaultLoggerSettings.ArgumentSerparator
+			ArgumentSerparator = _defaultLoggerSettings.ArgumentSerparator,
+			ArgumentNameValueSerparator = _defaultLoggerSettings.ArgumentNameValueSerparator
 		};
 
 		foreach (var arg in args)
 		{
 			var argName = arg.NameEquals!.Name.Identifier.ValueText;
 			var value = arg.Expression.NormalizeWhitespace().ToFullString();
-			if (argName == "DefaultLevel")
+			if (argName == Helpers.LogLevelPropertyName)
 			{
 				if (Helpers.ValidLogLevels.Contains(value))
-					result.LogLevel = value;
+					result.LogLevelDefault = value;
 			}
-			else if (argName == "GenerateAddLogDIMethod")
+			else if (argName == Helpers.GenerateAddLogDIMethodPropertyName)
 			{
 				if (bool.TryParse(value, out var generateAddLogDIMethod))
 					result.GenerateAddLogDIMethod = generateAddLogDIMethod;
 			}
-			else if (argName == "MessageTemplate")
+			else if (argName == Helpers.MessageTemplatePropertyName)
 			{
 				if (!string.IsNullOrWhiteSpace(value))
 					result.MessageTemplate = value;
 			}
-			else if (argName == "IncludeContextInEventName")
+			else if (argName == Helpers.IncludeContextInEventNamePropertyName)
 			{
 				if (bool.TryParse(value, out var includeContextInEventName))
 					result.IncludeContextInEventName = includeContextInEventName;
 			}
-			else if (argName == "ContextSeparator")
+			else if (argName == Helpers.ContextSeparatorPropertyName)
 			{
 				if (!string.IsNullOrWhiteSpace(value))
 					result.ContextSeparator = value;
 			}
-			else if (argName == "ContextArgumentSeparator")
+			else if (argName == Helpers.ContextArgumentListSeparatorPropertyName)
 			{
 				if (!string.IsNullOrWhiteSpace(value))
 					result.ContextArgumentSeparator = value;
 			}
-			else if (argName == "ArgumentSerparator")
+			else if (argName == Helpers.ArgumentSerparatorPropertyName)
 			{
 				if (!string.IsNullOrWhiteSpace(value))
 					result.ArgumentSerparator = value;
+			}
+			else if (argName == Helpers.ArgumentNameValueSerparatorPropertyName)
+			{
+				if (!string.IsNullOrWhiteSpace(value))
+					result.ArgumentNameValueSerparator = value;
 			}
 		}
 

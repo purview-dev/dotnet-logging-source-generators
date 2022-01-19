@@ -1,4 +1,6 @@
-﻿var serviceProvider = BuildServiceProvider();
+﻿using Serilog;
+
+var serviceProvider = BuildServiceProvider();
 var processingService = serviceProvider.GetRequiredService<IProcessingService>();
 
 // Create/ Get the state...
@@ -19,13 +21,14 @@ static IServiceProvider BuildServiceProvider()
 	services
 		.AddLogging(builder =>
 		{
-			builder
-				.AddSimpleConsole(consoleOptions =>
-				{
-					consoleOptions.IncludeScopes = true;
-					consoleOptions.UseUtcTimestamp = true;
-				})
-				.SetMinimumLevel(LogLevel.Trace);
+			builder.AddSerilog(logger: CreateSerilogLogger());
+			//builder
+			//	.AddSimpleConsole(consoleOptions =>
+			//	{
+			//		consoleOptions.IncludeScopes = true;
+			//		consoleOptions.UseUtcTimestamp = true;
+			//	})
+			//	.SetMinimumLevel(LogLevel.Trace);
 		});
 
 	services
@@ -36,4 +39,18 @@ static IServiceProvider BuildServiceProvider()
 		ValidateOnBuild = true,
 		ValidateScopes = true
 	});
+}
+
+static Serilog.ILogger CreateSerilogLogger()
+{
+	var config = new LoggerConfiguration()
+		.MinimumLevel
+			.Verbose()
+		.Enrich
+			.FromLogContext()
+		.WriteTo
+			// Include scoped properties with the {Properties:j}.
+			.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Properties:j}{NewLine}{Exception}");
+
+	return config.CreateLogger();
 }

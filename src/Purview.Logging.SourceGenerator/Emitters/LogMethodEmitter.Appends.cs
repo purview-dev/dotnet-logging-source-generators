@@ -98,9 +98,10 @@ partial class LogMethodEmitter
 		}
 
 		// Format message... if one isn't defined, create one.
+		var loggerMessage = BuildMessage(logSettings?.Message ?? _defaultLoggerSettings.MessageTemplate, methodName, paramsWithoutException);
 		builder
 			.Append('"')
-			.Append(logSettings?.Message ?? BuildMessage(methodName, paramsWithoutException))
+			.Append(loggerMessage)
 			.Append('"');
 
 		if (methodReturnType == MethodReturnType.Void && _hasLogOptions.Value)

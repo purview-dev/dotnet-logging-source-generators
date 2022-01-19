@@ -4,7 +4,7 @@ namespace DemoService.Interfaces.ApplicationServices;
 
 public interface IProcessingServiceLogs
 {
-	IDisposable BeginProcessing(Guid contextId);
+	IDisposable BeginProcessing(Guid contextId, DateTimeOffset startedAt);
 
 	void OperationPart1(string aStringParam);
 

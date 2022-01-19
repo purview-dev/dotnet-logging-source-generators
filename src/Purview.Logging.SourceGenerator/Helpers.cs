@@ -24,8 +24,6 @@ static class Helpers
 
 	public const int MaximumLoggerDefineParameters = 6;
 
-	public const string LogLevelDefault = "Information";
-
 	readonly static public string IDisposableType = typeof(IDisposable).FullName;
 
 	static public string[] ValidLogLevels => LogLevelValuesToNames.Values.ToArray();
@@ -39,7 +37,9 @@ static class Helpers
 		{ 5, "Critical" }
 	};
 
-	public const string MessageTemplateDefault = "{{ContextName}}{{ContextSeparator}}{{MethodName}}{{ContextArgumentSeparator}}{{ArgumentList}}";
+	public const string LogLevelDefault = "Information";
+
+	public const string MessageTemplateDefault = "{ContextName}{ContextSeparator}{MethodName}{ContextArgumentSeparator}{ArgumentList}";
 
 	public const bool GenerateAddLogDIMethodDefault = true;
 
@@ -47,9 +47,28 @@ static class Helpers
 
 	public const string ContextSeparatorDefault = ".";
 
-	public const string ContextArgumentSeparatorDefault = ": ";
+	public const string ContextArgumentListSeparatorDefault = "> ";
+
+	public const string ArgumentNameValueSerparatorDefault = ": ";
 
 	public const string ArgumentSerparatorDefault = ", ";
+
+	// Default Property Names
+	public const string LogLevelPropertyName = "LogLevel";
+
+	public const string GenerateAddLogDIMethodPropertyName = "GenerateAddLogDIMethod";
+
+	public const string MessageTemplatePropertyName = "MessageTemplate";
+
+	public const string IncludeContextInEventNamePropertyName = "IncludeContextInEventName";
+
+	public const string ContextSeparatorPropertyName = "ContextSeparator";
+
+	public const string ContextArgumentListSeparatorPropertyName = "ContextArgumentListSeparator";
+
+	public const string ArgumentNameValueSerparatorPropertyName = "ArgumentNameValueSerparator";
+
+	public const string ArgumentSerparatorPropertyName = "ArgumentSerparator";
 
 	// Attributes are internal to avoid collisions.
 	readonly static public string AttributeDefinitions = @$"
@@ -70,13 +89,13 @@ namespace {MSLoggingNamespace}
 		/// <summary>
 		/// The default <see cref=""{MSLoggingLogLevelTypeName}""/> used for generating log events.
 		/// </summary>
-		public {MSLoggingLogLevelTypeName} DefaultLevel {{ get; set; }}
+		public {MSLoggingLogLevelTypeName} {LogLevelPropertyName} {{ get; set; }} = {MSLoggingLogLevelTypeName}.{LogLevelDefault};
 
 		/// <summary>
 		/// Indicates if the generator should include the .AddLog<T> method required
 		/// for use in log implementation registration using the IServiceCollection.
 		/// </summary>
-		public bool GenerateAddLogDIMethod {{ get; set; }} = {GenerateAddLogDIMethodDefault};
+		public bool {GenerateAddLogDIMethodPropertyName} {{ get; set; }} = {$"{GenerateAddLogDIMethodDefault}".ToLowerInvariant()};
 
 		/// <summary>
 		/// The default message template.
@@ -89,28 +108,33 @@ namespace {MSLoggingNamespace}
 		/// ArgumentSeparator == separates the arguments.
 		/// </code>
 		/// </summary>
-		public string MessageTemplate {{ get; set; }} = ""{MessageTemplateDefault}"";
+		public string {MessageTemplatePropertyName} {{ get; set; }} = ""{MessageTemplateDefault}"";
 	
 		/// <summary>
 		/// If true includes the EventId.Name is made from the interface and method name, 
 		/// otherwise just the method name is used.
 		/// </summary>
-		public bool IncludeContextInEventName {{ get; set; }} = {IncludeContextInEventNameDefault};
+		public bool {IncludeContextInEventNamePropertyName} {{ get; set; }} = {$"{IncludeContextInEventNameDefault}".ToLowerInvariant()};
 
 		/// <summary>
 		/// The default separator used when the ContextName is included.
 		/// </summary>
-		public string ContextSeparator {{ get; set; }} = ""{ContextSeparatorDefault}"";
+		public string {ContextSeparatorPropertyName} {{ get; set; }} = ""{ContextSeparatorDefault}"";
 
 		/// <summary>
 		/// The default separator used when arguments are included.
 		/// </summary>
-		public string ContextArgumentSeparator {{ get; set; }} = ""{ContextArgumentSeparatorDefault}"";
+		public string {ContextArgumentListSeparatorPropertyName} {{ get; set; }} = ""{ContextArgumentListSeparatorDefault}"";
+
+		/// <summary>
+		/// The default separator used to separate the argument's name and value.
+		/// </summary>
+		public string {ArgumentNameValueSerparatorPropertyName} {{ get; set; }} = ""{ArgumentNameValueSerparatorDefault}"";
 
 		/// <summary>
 		/// The default separator used to separate multiple arguments.
 		/// </summary>
-		public string ArgumentSerparator {{ get; set; }} = ""{ArgumentSerparatorDefault}"";
+		public string {ArgumentSerparatorPropertyName} {{ get; set; }} = ""{ArgumentSerparatorDefault}"";
 	}}
 
 	/// <summary>

@@ -8,6 +8,7 @@ namespace Purview.Logging.SourceGenerator.Emitters;
 sealed partial class LogMethodEmitter
 {
 	const string _voidReturnType = "void";
+
 	readonly static string _exceptionType = typeof(Exception).FullName;
 	readonly string _loggerName;
 	readonly MethodDeclarationSyntax _methodDeclaration;
@@ -106,7 +107,7 @@ sealed partial class LogMethodEmitter
 		// Get the default local log level, if we know we contained an exception,
 		// set the default to Error, otherwise use the configured default.
 		var localDefault = exceptionData == null
-			? _defaultLoggerSettings.LogLevel
+			? _defaultLoggerSettings.LogLevelDefault
 			: "Error";
 
 		// If the method has a defined level use it, or use the local default.
@@ -121,22 +122,36 @@ sealed partial class LogMethodEmitter
 		return (builder.ToString(), parameterData.Any(p => p.IsNullable));
 	}
 
-	static string? BuildMessage(string methodName, IEnumerable<ParameterData> paramsWithoutException)
+	string BuildMessage(string messageTemplate, string methodName, ParameterData[] paramsWithoutException)
 	{
-		var message = methodName;
-		if (paramsWithoutException.Any())
-		{
-			message += ": " + string.Join(", ", paramsWithoutException.Select(p =>
-			{
-				var pName = p.Name;
-				if (char.IsLower(pName[0]))
-					pName = char.ToUpperInvariant(pName[0]) + pName.Substring(1);
+		messageTemplate = messageTemplate
+			.Replace("{ContextName}", _loggerName)
+			.Replace("{ContextSeparator}", _defaultLoggerSettings.ContextSeparator)
+			.Replace("{MethodName}", methodName);
 
-				return pName + ": {" + pName + "}";
+		if (paramsWithoutException.Length == 0)
+		{
+			// No parameters, so replace the separator value with nothing.
+			messageTemplate = messageTemplate
+				.Replace("{ContextArgumentSeparator}", string.Empty);
+		}
+		else
+		{
+			var argumentList = string.Join(_defaultLoggerSettings.ArgumentSerparator, paramsWithoutException.Select(p =>
+			{
+				var titledCasedParameterName = p.Name;
+				if (char.IsLower(titledCasedParameterName[0]))
+					titledCasedParameterName = char.ToUpperInvariant(titledCasedParameterName[0]) + titledCasedParameterName.Substring(1);
+
+				return p.Name + _defaultLoggerSettings.ArgumentNameValueSerparator + "{" + titledCasedParameterName + "}";
 			}));
+
+			messageTemplate = messageTemplate
+				.Replace("{ContextArgumentSeparator}", _defaultLoggerSettings.ContextArgumentSeparator)
+				.Replace("{ArgumentList}", argumentList);
 		}
 
-		return message;
+		return messageTemplate;
 	}
 
 	MethodReturnType GetReturnType()
