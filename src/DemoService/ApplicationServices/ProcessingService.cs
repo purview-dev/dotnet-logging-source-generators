@@ -29,6 +29,8 @@ sealed class ProcessingService : IProcessingService
 
 			_logs.OperationPart3(someData);
 
+			_logs.OperationPart4();
+
 			sw.Stop();
 
 			// Super-quick elapsed time...!

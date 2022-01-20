@@ -133,7 +133,8 @@ sealed partial class LogMethodEmitter
 		{
 			// No parameters, so replace the separator value with nothing.
 			messageTemplate = messageTemplate
-				.Replace("{ContextArgumentSeparator}", string.Empty);
+				.Replace("{ContextArgumentSeparator}", string.Empty)
+				.Replace("{ArgumentList}", string.Empty);
 		}
 		else
 		{

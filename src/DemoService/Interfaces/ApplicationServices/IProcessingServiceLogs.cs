@@ -13,6 +13,8 @@ public interface IProcessingServiceLogs
 	[LogEvent(Level = LogLevel.Trace)]
 	void OperationPart3(SomeData aComplexTypeParam);
 
+	void OperationPart4();
+
 	void CompletedProcessing(TimeSpan duration);
 
 	[LogEvent(Level = LogLevel.Warning)]
