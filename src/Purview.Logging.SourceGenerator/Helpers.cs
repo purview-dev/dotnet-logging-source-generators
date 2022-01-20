@@ -24,8 +24,6 @@ static class Helpers
 
 	public const int MaximumLoggerDefineParameters = 6;
 
-	public const string DefaultLogLevel = "Information";
-
 	readonly static public string IDisposableType = typeof(IDisposable).FullName;
 
 	static public string[] ValidLogLevels => LogLevelValuesToNames.Values.ToArray();
@@ -33,14 +31,47 @@ static class Helpers
 	readonly static public Dictionary<int, string> LogLevelValuesToNames = new() {
 		{ 0, "Trace" },
 		{ 1, "Debug" },
-		{ 2, DefaultLogLevel },
+		{ 2, LogLevelDefault },
 		{ 3, "Warning" },
 		{ 4, "Error" },
 		{ 5, "Critical" }
 	};
 
+	public const string LogLevelDefault = "Information";
+
+	public const string MessageTemplateDefault = "{ContextName}{ContextSeparator}{MethodName}{ContextArgumentSeparator}{ArgumentList}";
+
+	public const bool GenerateAddLogDIMethodDefault = true;
+
+	public const bool IncludeContextInEventNameDefault = true;
+
+	public const string ContextSeparatorDefault = ".";
+
+	public const string ContextArgumentListSeparatorDefault = "> ";
+
+	public const string ArgumentNameValueSerparatorDefault = ": ";
+
+	public const string ArgumentSerparatorDefault = ", ";
+
+	// Default Property Names
+	public const string LogLevelPropertyName = "LogLevel";
+
+	public const string GenerateAddLogDIMethodPropertyName = "GenerateAddLogDIMethod";
+
+	public const string MessageTemplatePropertyName = "MessageTemplate";
+
+	public const string IncludeContextInEventNamePropertyName = "IncludeContextInEventName";
+
+	public const string ContextSeparatorPropertyName = "ContextSeparator";
+
+	public const string ContextArgumentListSeparatorPropertyName = "ContextArgumentListSeparator";
+
+	public const string ArgumentNameValueSerparatorPropertyName = "ArgumentNameValueSerparator";
+
+	public const string ArgumentSerparatorPropertyName = "ArgumentSerparator";
+
 	// Attributes are internal to avoid collisions.
-	public const string AttributeDefinitions = @$"
+	readonly static public string AttributeDefinitions = @$"
 #nullable disable
 
 using System;
@@ -58,13 +89,52 @@ namespace {MSLoggingNamespace}
 		/// <summary>
 		/// The default <see cref=""{MSLoggingLogLevelTypeName}""/> used for generating log events.
 		/// </summary>
-		public {MSLoggingLogLevelTypeName} DefaultLevel {{ get; set; }}
+		public {MSLoggingLogLevelTypeName} {LogLevelPropertyName} {{ get; set; }} = {MSLoggingLogLevelTypeName}.{LogLevelDefault};
 
 		/// <summary>
 		/// Indicates if the generator should include the .AddLog<T> method required
-		/// for use in log implementation registrion using the IServiceCollection.
+		/// for use in log implementation registration using the IServiceCollection.
 		/// </summary>
-		public bool GenerateAddLogDIMethod {{ get; set; }} = true;
+		public bool {GenerateAddLogDIMethodPropertyName} {{ get; set; }} = {$"{GenerateAddLogDIMethodDefault}".ToLowerInvariant()};
+
+		/// <summary>
+		/// The default message template.
+		/// <code>
+		/// ContextName == The interface name.
+		/// ContextSeperator == Separates the ContextName from the MethodName.
+		/// MethodName == The name of the method, as it appears on the interface.
+		/// ContextArgumentSeparator == Separates the Arguments from the Context/ Method name.
+		/// ArgumentList == The arguments, formatted by {{ArgumentName}}{{ArgumentSerparator}}{{ArgumentValue}}
+		/// ArgumentSeparator == separates the arguments.
+		/// </code>
+		/// </summary>
+		public string {MessageTemplatePropertyName} {{ get; set; }} = ""{MessageTemplateDefault}"";
+	
+		/// <summary>
+		/// If true includes the EventId.Name is made from the interface and method name, 
+		/// otherwise just the method name is used.
+		/// </summary>
+		public bool {IncludeContextInEventNamePropertyName} {{ get; set; }} = {$"{IncludeContextInEventNameDefault}".ToLowerInvariant()};
+
+		/// <summary>
+		/// The default separator used when the ContextName is included.
+		/// </summary>
+		public string {ContextSeparatorPropertyName} {{ get; set; }} = ""{ContextSeparatorDefault}"";
+
+		/// <summary>
+		/// The default separator used when arguments are included.
+		/// </summary>
+		public string {ContextArgumentListSeparatorPropertyName} {{ get; set; }} = ""{ContextArgumentListSeparatorDefault}"";
+
+		/// <summary>
+		/// The default separator used to separate the argument's name and value.
+		/// </summary>
+		public string {ArgumentNameValueSerparatorPropertyName} {{ get; set; }} = ""{ArgumentNameValueSerparatorDefault}"";
+
+		/// <summary>
+		/// The default separator used to separate multiple arguments.
+		/// </summary>
+		public string {ArgumentSerparatorPropertyName} {{ get; set; }} = ""{ArgumentSerparatorDefault}"";
 	}}
 
 	/// <summary>
@@ -99,16 +169,16 @@ namespace {MSLoggingNamespace}
 
 		/// <summary>
 		/// The message template to use, if none is specified the following pattern is used:
-		/// {{MethodName}}: [{{ParameterName}}: {{ParameterValue}}, ...]
+		/// {MessageTemplateDefault}
 		/// 
 		/// For example:
 		/// <code>
-		///		Operation1(int operationId, string value)
+		///		IOperationalServiceLogs.Operation1(int operationId, string value)
 		/// </code>
 		/// 
 		/// Would generate:
 		/// <code>
-		///		""Operation1: operationId: {{OperationId}}, value: {{Value}}""
+		///		""IOperationalService.Operation1: OperationId: {{OperationId}}, Value: {{Value}}""
 		/// </code>
 		/// </summary>
 		public string Message {{ get; set; }}
@@ -124,11 +194,6 @@ namespace {MSLoggingNamespace}
 
 		// If we include the attributes in all referenced assemblies, we don't need to dynamically parse it...
 		return context.Compilation.GetTypeByMetadataName($"{MSLoggingNamespace}.{attributeTypeName}");
-
-		//var options = (context.Compilation as CSharpCompilation)?.SyntaxTrees[0].Options as CSharpParseOptions;
-		//var compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(AttributeDefinitions, Encoding.UTF8), options, cancellationToken: cancellationToken));
-
-		//return compilation.GetTypeByMetadataName($"{MSLoggingNamespace}.{attributeTypeName}");
 	}
 
 	static public (bool hasNamespace, bool isFileScoped, string? @namespace) GetNamespaceFrom(SyntaxNode syntaxNode)

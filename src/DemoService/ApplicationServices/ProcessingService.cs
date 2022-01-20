@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using DemoService.Interfaces.ApplicationServices;
 using DemoService.Models;
 
 namespace DemoService.ApplicationServices;
@@ -16,7 +15,7 @@ sealed class ProcessingService : IProcessingService
 	public void Process(Guid contextId, SomeData someData)
 	{
 		var sw = Stopwatch.StartNew();
-		using (_logs.BeginProcessing(contextId))
+		using (_logs.BeginProcessing(contextId, DateTimeOffset.UtcNow))
 		{
 			if (string.IsNullOrWhiteSpace(someData.Payload))
 				_logs.MissingPayload(nameof(someData.Payload));
@@ -29,6 +28,8 @@ sealed class ProcessingService : IProcessingService
 				_logs.OperationPart2(someData.ACount.Value);
 
 			_logs.OperationPart3(someData);
+
+			_logs.OperationPart4();
 
 			sw.Stop();
 

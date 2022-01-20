@@ -83,15 +83,25 @@ partial class LogMethodEmitter
 				.Append(Helpers.MSLoggingNamespace)
 				.Append(".EventId(")
 				.Append(logSettings?.EventId ?? _methodIndex)
-				.Append(", \"")
+				.Append(", \"");
+
+			if (_defaultLoggerSettings.IncludeContextInEventName)
+			{
+				builder
+					.Append(_loggerName)
+					.Append('.');
+			}
+
+			builder
 				.Append(logSettings?.Name ?? methodName)
 				.Append("\"), ");
 		}
 
 		// Format message... if one isn't defined, create one.
+		var loggerMessage = BuildMessage(logSettings?.Message ?? _defaultLoggerSettings.MessageTemplate, methodName, paramsWithoutException);
 		builder
 			.Append('"')
-			.Append(logSettings?.Message ?? BuildMessage(methodName, paramsWithoutException))
+			.Append(loggerMessage)
 			.Append('"');
 
 		if (methodReturnType == MethodReturnType.Void && _hasLogOptions.Value)

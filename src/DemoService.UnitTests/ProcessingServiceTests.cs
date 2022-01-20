@@ -24,7 +24,10 @@ public class ProcessingServiceTests
 		// Assert
 		logs
 			.Received(1)
-			.BeginProcessing(contextId: Arg.Is(contextId));
+			.BeginProcessing(
+				contextId: Arg.Is(contextId),
+				startedAt: Arg.Any<DateTimeOffset>()
+			);
 	}
 
 	[Theory]
