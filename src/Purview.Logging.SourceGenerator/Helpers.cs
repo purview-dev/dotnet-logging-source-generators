@@ -26,7 +26,10 @@ static class Helpers
 
 	readonly static public string IDisposableType = typeof(IDisposable).FullName;
 
-	static public string[] ValidLogLevels => LogLevelValuesToNames.Values.ToArray();
+	static public string[] ValidLogLevels => LogLevelValuesToNames
+		.Values.Concat(
+			LogLevelValuesToNames.Values.Select(m => $"{MSLoggingLogLevelTypeName}.{m}")
+		).ToArray();
 
 	readonly static public Dictionary<int, string> LogLevelValuesToNames = new() {
 		{ 0, "Trace" },
@@ -54,9 +57,9 @@ static class Helpers
 	public const string ArgumentSerparatorDefault = ", ";
 
 	// Default Property Names
-	public const string LogLevelPropertyName = "LogLevel";
+	public const string LogLevelPropertyName = "Level";
 
-	public const string GenerateAddLogDIMethodPropertyName = "GenerateAddLogDIMethod";
+	public const string GenerateAddLogDIMethodPropertyName = "GenerateAddLogMethod";
 
 	public const string MessageTemplatePropertyName = "MessageTemplate";
 
@@ -83,7 +86,7 @@ namespace {MSLoggingNamespace}
 	/// </summary>
 	[System.Diagnostics.DebuggerStepThroughAttribute]
 	[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute]
-	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Interface | AttributeTargets.Assembly, AllowMultiple = false)]
+	[AttributeUsage(AttributeTargets.Interface | AttributeTargets.Assembly, AllowMultiple = false)]
 	sealed class {PurviewDefaultLogEventSettingsAttributeNameWithSuffix} : Attribute
 	{{
 		/// <summary>
@@ -158,14 +161,14 @@ namespace {MSLoggingNamespace}
 		public string Name {{ get; set; }}
 
 		/// <summary>
-		/// The <see cref=""{MSLoggingLogLevelTypeName}""/> used for generation. If non is specified,
+		/// The <see cref=""{MSLoggingLogLevelTypeName}""/> used for generation. If none is specified,
 		/// the <see cref=""{PurviewDefaultLogEventSettingsAttributeNameWithSuffix}.DefaultLevel""/> is used.
 		/// </summary>
 		/// <remarks>
 		/// If the log event contains an <see cref=""Exception""/> and
 		/// no level is defined, <see cref=""{MSLoggingLogLevelTypeName}.Error""/> is used.
 		/// </remarks>
-		public {MSLoggingLogLevelTypeName} Level {{ get; set; }} = {MSLoggingLogLevelTypeName}.None;
+		public {MSLoggingLogLevelTypeName} {LogLevelPropertyName} {{ get; set; }} = {MSLoggingLogLevelTypeName}.None;
 
 		/// <summary>
 		/// The message template to use, if none is specified the following pattern is used:
@@ -178,7 +181,7 @@ namespace {MSLoggingNamespace}
 		/// 
 		/// Would generate:
 		/// <code>
-		///		""IOperationalService.Operation1: OperationId: {{OperationId}}, Value: {{Value}}""
+		///		""IOperationalService.Operation1> OperationId: {{OperationId}}, Value: {{Value}}""
 		/// </code>
 		/// </summary>
 		public string Message {{ get; set; }}

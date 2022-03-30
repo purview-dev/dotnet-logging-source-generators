@@ -25,7 +25,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Purview.Logging.SourceGenerator.VS2019\Purview.Logging.SourceGenerator.VS2019.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 
-		<!--<PackageReference Include="Purview.Logging.SourceGenerator.VS2019" Version="0.9.3-prerelease" />-->
+		<!--<PackageReference Include="Purview.Logging.SourceGenerator.VS2019" Version="$(Version)" />-->
 	</ItemGroup>
 
 </Project>

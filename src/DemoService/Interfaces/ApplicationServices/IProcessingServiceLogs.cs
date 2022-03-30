@@ -2,6 +2,7 @@
 
 namespace DemoService.Interfaces.ApplicationServices;
 
+[DefaultLogEventSettings(Level = LogLevel.Warning)]
 public interface IProcessingServiceLogs
 {
 	IDisposable BeginProcessing(Guid contextId, DateTimeOffset startedAt);

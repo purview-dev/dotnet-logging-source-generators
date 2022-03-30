@@ -938,3 +938,4 @@ node_modules
 # BeatPulse healthcheck temp database
 
 # End of https://www.gitignore.io/api/vue,vuejs,csharp,angular,aspnetcore,reactnative,visualstudio,visualstudiocode,ncrunch
+/src/.ionide
