@@ -7,7 +7,7 @@ namespace DemoService.Interfaces.ApplicationServices;
 public class IProcessingServiceLogsTests
 {
 	[Fact]
-	public void OperationPart1_GivenDefaultIsInterfaceIsWarningAndNoOverrideSet_LogsAsWarning()
+	public void OperationPart1_GivenDefaultIsInterfaceIsWarningDespiteOverrideSet_LogsAsWarning()
 	{
 		// Arrange
 		MockLogger<IProcessingServiceLogs> mockLogger = CreateLogger<IProcessingServiceLogs>();

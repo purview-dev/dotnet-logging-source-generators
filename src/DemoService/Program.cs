@@ -1,5 +1,7 @@
 ﻿using Serilog;
 
+const bool ENABLE_SERILOG = true;
+
 var serviceProvider = BuildServiceProvider();
 var processingService = serviceProvider.GetRequiredService<IProcessingService>();
 
@@ -21,14 +23,20 @@ static IServiceProvider BuildServiceProvider()
 	services
 		.AddLogging(builder =>
 		{
-			builder.AddSerilog(logger: CreateSerilogLogger());
-			//builder
-			//	.AddSimpleConsole(consoleOptions =>
-			//	{
-			//		consoleOptions.IncludeScopes = true;
-			//		consoleOptions.UseUtcTimestamp = true;
-			//	})
-			//	.SetMinimumLevel(LogLevel.Trace);
+			if (ENABLE_SERILOG)
+			{
+				builder.AddSerilog(logger: CreateSerilogLogger());
+			}
+			else
+			{
+				builder
+					.AddSimpleConsole(consoleOptions =>
+					{
+						consoleOptions.IncludeScopes = true;
+						consoleOptions.UseUtcTimestamp = true;
+					})
+					.SetMinimumLevel(LogLevel.Trace);
+			}
 		});
 
 	services
@@ -50,7 +58,7 @@ static Serilog.ILogger CreateSerilogLogger()
 			.FromLogContext()
 		.WriteTo
 			// Include scoped properties with the {Properties:j}.
-			.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Properties:j}{NewLine}{Exception}");
+			.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Properties} {Message:lj}{NewLine}{Properties:j}{NewLine}{Exception}");
 
 	return config.CreateLogger();
 }

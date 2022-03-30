@@ -26,7 +26,10 @@ static class Helpers
 
 	readonly static public string IDisposableType = typeof(IDisposable).FullName;
 
-	static public string[] ValidLogLevels => LogLevelValuesToNames.Values.ToArray();
+	static public string[] ValidLogLevels => LogLevelValuesToNames
+		.Values.Concat(
+			LogLevelValuesToNames.Values.Select(m => $"{MSLoggingLogLevelTypeName}.{m}")
+		).ToArray();
 
 	readonly static public Dictionary<int, string> LogLevelValuesToNames = new() {
 		{ 0, "Trace" },

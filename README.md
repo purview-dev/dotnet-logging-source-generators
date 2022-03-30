@@ -57,6 +57,8 @@ Notice here we're also using `IDisposable` for [scoped](https://docs.microsoft.c
 services.AddLog<IProcessingServiceLogs>() // this is an auto-generated extension method.
 ```
 
+Although this is optional, if you chose to disable DI intergration.
+
 ### ...Log!
 
 ```c#
@@ -136,23 +138,23 @@ Reference the appropriate NuGet package in your CSPROJ file:
 
 ```xml
 <ItemGroup>
-  <!-- For VS2022 -->
+  <!-- For C# 10 -->
   <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.9.3-prerelease" />
-  <!-- For VS2019 -->
+  <!-- For C# 9 -->
   <PackageReference Include="Purview.Logging.SourceGenerator.VS2019" Version="0.9.3-prerelease" />
 </ItemGroup>
 ```
 
-*Found an issue using VS2019/ .NET 5 SDK that requires a different build of the generator. You may have better luck, but if you encounter issues with `Microsoft.CodeAnalysis.CSharp` version 4 missing then using the VS2019 version.* 
+*Found an issue using C# 9 that requires a different build of the generator. You may have better luck, but if you encounter issues with `Microsoft.CodeAnalysis.CSharp` version 4 missing then using the VS2019 version.* 
 
-Currently you must have the `Microsoft.Extensions.DepdencyInjection` and `Microsoft.Extensions.Logging` (version 5 or higher) packages installed along with the `Purview.Logging.SourceGenerator` package in your target project.
+Currently you must have the `Microsoft.Extensions.DepdencyInjection` (if generation of DI is left as the default of `true`) and `Microsoft.Extensions.Logging` (version 5 or higher) packages installed along with the `Purview.Logging.SourceGenerator` package in your target project.
 
 ## Log Event Configuration
 
 By default each assembly where a logging interface is defined get two attributes generated that can be used to control the log event:
 
-1. `DefaultLogLevelAttribute` - use on an interface to control the default log level for all events on that interface, or as an assembly attribute to control the default for all log events within an assembly. If declared on both, the one on the interface takes precedence.
-2. `LogEventAttributte` - use to configure individual log events, including their Event Id, Event Name, Log Level and Message Template. If the level is specified, this will overwrite any defined by the `DefaultLogLevelAttribute`.
+1. `DefaultLogEventSettingsAttribute` - use on an assembly or interface to control generation settings, such as the default log level for all events. If declared on both, the interface takes precedence over default values.
+2. `LogEventAttributte` - use to configure individual log events, including their Event Id, Event Name, Log Level and Message Template. If the level is specified, this will overwrite any defined by the `DefaultLogEventSettingsAttribute`.
 
 If no log level is defined (via the `LogEventAttribute`) and the method contains an `Exception` parameter, the level is automatically set to `Error` regardless of other defaults. 
 

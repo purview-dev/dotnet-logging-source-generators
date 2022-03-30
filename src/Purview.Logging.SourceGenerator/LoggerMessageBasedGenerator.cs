@@ -253,19 +253,27 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			return _defaultLoggerSettings;
 		}
 
-		var attribute = declaredSymbol.GetAttributes().SingleOrDefault(m =>
+		var assemblyAttribute = declaredSymbol.ContainingAssembly.GetAttributes().SingleOrDefault(m =>
+			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeName ||
+			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix);
+		
+		var interfaceAttribute = declaredSymbol.GetAttributes().SingleOrDefault(m =>
 			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeName ||
 			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix);
 
-		if (attribute == null)
+		if (interfaceAttribute == null && assemblyAttribute == null)
 			return _defaultLoggerSettings;
 
-		return GetDefaultLogEventValues(attribute, cancellationToken);
+		var interfaceSettings = GetDefaultLogEventValues(interfaceAttribute, cancellationToken);
+		var assemblySettings = GetDefaultLogEventValues(assemblyAttribute, cancellationToken);
+
+		// Override assembly defaults with interface detaults.
+		return assemblySettings.Merge(interfaceSettings);
 	}
 
-	DefaultLoggerSettings GetDefaultLogEventValues(AttributeData attribute, CancellationToken cancellationToken)
+	DefaultLoggerSettings GetDefaultLogEventValues(AttributeData? attributeData, CancellationToken cancellationToken)
 	{
-		if (attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken) is not AttributeSyntax attributeSyntax)
+		if (attributeData?.ApplicationSyntaxReference?.GetSyntax(cancellationToken) is not AttributeSyntax attributeSyntax)
 			return _defaultLoggerSettings;
 
 		if (attributeSyntax.ArgumentList?.Arguments.Count == 0)
@@ -290,7 +298,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			if (argName == Helpers.LogLevelPropertyName)
 			{
 				if (Helpers.ValidLogLevels.Contains(value))
-					result.LogLevelDefault = value;
+					result.LogLevelDefault = value.Replace($"{Helpers.MSLoggingLogLevelTypeName}.", "");
 			}
 			else if (argName == Helpers.GenerateAddLogDIMethodPropertyName)
 			{
