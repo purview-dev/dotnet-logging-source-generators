@@ -73,7 +73,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 
 	(string source, string path, string interfaceName, string className, string? @namespace, DefaultLoggerSettings defaultLoggerSettings) GenerateSource(InterfaceDeclarationSyntax interfaceDeclaration, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
 	{
-		System.Diagnostics.Debugger.Break();
+		//System.Diagnostics.Debugger.Break();
 
 		var defaultInterfaceLogSettings = GetDefaultLogSettings(interfaceDeclaration, context, cancellationToken);
 

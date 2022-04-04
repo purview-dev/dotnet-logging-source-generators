@@ -21,7 +21,7 @@
 		<NoWarn>CS1591;$(NoWarn)</NoWarn>
 		<NoWarn>CA1014;CA1848;CA2201;CA2234;CA2225;CA2254;$(NoWarn)</NoWarn>
 
-		<Version>0.9.3.5-prerelease</Version>
+		<Version>0.9.3.6-prerelease</Version>
 		
 	</PropertyGroup>
 
