@@ -8,6 +8,7 @@
 		<Title>Purview Logging Source Generator</Title>
 		<Description>Generates LoggerMessage-based High Performance log from Interfaces.</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PacakgeId>Purview.Logging.SourceGenerator</PacakgeId>
 	</PropertyGroup>
 
 	<ItemGroup>

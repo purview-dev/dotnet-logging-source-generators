@@ -95,7 +95,7 @@ namespace {MSLoggingNamespace}
 		public {MSLoggingLogLevelTypeName} {LogLevelPropertyName} {{ get; set; }} = {MSLoggingLogLevelTypeName}.{LogLevelDefault};
 
 		/// <summary>
-		/// Indicates if the generator should include the .AddLog<T> method required
+		/// Indicates if the generator should include the .AddLog generic method required
 		/// for use in log implementation registration using the IServiceCollection.
 		/// </summary>
 		public bool {GenerateAddLogDIMethodPropertyName} {{ get; set; }} = {$"{GenerateAddLogDIMethodDefault}".ToLowerInvariant()};
@@ -162,7 +162,7 @@ namespace {MSLoggingNamespace}
 
 		/// <summary>
 		/// The <see cref=""{MSLoggingLogLevelTypeName}""/> used for generation. If none is specified,
-		/// the <see cref=""{PurviewDefaultLogEventSettingsAttributeNameWithSuffix}.DefaultLevel""/> is used.
+		/// the <see cref=""{PurviewDefaultLogEventSettingsAttributeNameWithSuffix}.{LogLevelPropertyName}""/> is used.
 		/// </summary>
 		/// <remarks>
 		/// If the log event contains an <see cref=""Exception""/> and

@@ -6,10 +6,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Title>Purview Logging Source Generator for VS2019</Title>
+		<Title>Purview Logging Source Generator for C# 9 or lower.</Title>
 		<Description>Generates LoggerMessage-based High Performance log from Interfaces.</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PacakgeId>Purview.Logging.SourceGenerator.VS2019</PacakgeId>
+		<PacakgeId>Purview.Logging.SourceGenerator.CSharp9</PacakgeId>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -36,3 +36,4 @@
 	</ItemGroup>
 	
 </Project>
+ 
