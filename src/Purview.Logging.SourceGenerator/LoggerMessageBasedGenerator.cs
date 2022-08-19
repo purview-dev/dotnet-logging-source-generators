@@ -120,7 +120,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			: null;
 
 		// Append the debugger step through to prevent the debugger from stepping into the code...
-		// it's largely irrevent to any debugging session anyway...then
+		// it's largely irreverent to any debugging session anyway...then
 		// ...append an internal class definition that implements the interface, and
 		// a field of ILogger<T> where T is the interface type.
 		builder
@@ -159,7 +159,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		// ...implement the interface!
 		var memberIndex = 0;
 		var generatedLogEventMethod = false;
-		//var isNullable = false;
+
 		foreach (var memberSyntax in interfaceDeclaration.Members)
 		{
 			memberIndex++;
@@ -191,8 +191,6 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 				generatedLogEventMethod = true;
 
 				builder.AppendLine(source);
-				//if (methodImplementation.isNullable)
-				//	isNullable = true;
 			}
 		}
 
@@ -213,15 +211,6 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 			.AppendLine("#pragma warning restore CA1812")
 			.AppendLine("#pragma warning restore CS8625")
 			.AppendLine("#nullable restore");
-
-		//if (isNullable)
-		//{
-		//	// It's too unreliable to determine if nullable is enabled or not.
-		//	// The 'Define' exception is nullable, but there is no way to tell if it's available or not.
-
-		//	//builder.Insert(0, $"#nullable enable{Environment.NewLine}");
-		//	//builder.AppendLine("#nullable restore");
-		//}
 
 		// Add a final blank line.
 		builder.AppendLine();
@@ -256,7 +245,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		var assemblyAttribute = declaredSymbol.ContainingAssembly.GetAttributes().SingleOrDefault(m =>
 			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeName ||
 			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix);
-		
+
 		var interfaceAttribute = declaredSymbol.GetAttributes().SingleOrDefault(m =>
 			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeName ||
 			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix);

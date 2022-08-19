@@ -57,7 +57,7 @@ Notice here we're also using `IDisposable` for [scoped](https://docs.microsoft.c
 services.AddLog<IProcessingServiceLogs>() // this is an auto-generated extension method.
 ```
 
-Although this is optional, if you chose to disable DI intergration.
+Although this is optional, if you chose to disable DI integration.
 
 ### ...Log!
 
@@ -101,7 +101,7 @@ sealed class ProcessingService
 
 ### How does testing work?
 
-Full example is in the `DemoService.UnitTests` project, this is just the abridged version. 
+Full example is in the `DemoService.UnitTests` project, this is just the abridged version.
 
 It uses the excellent [`xunit`](https://www.nuget.org/packages/xunit/)  and [`NSubstitute`](https://www.nuget.org/packages/NSubstitute/).
 
@@ -141,24 +141,24 @@ Reference the appropriate NuGet package in your CSPROJ file:
   <!-- For C# 10 -->
   <PackageReference Include="Purview.Logging.SourceGenerator" Version="0.9.3-prerelease" />
   <!-- For C# 9 -->
-  <PackageReference Include="Purview.Logging.SourceGenerator.VS2019" Version="0.9.3-prerelease" />
+  <PackageReference Include="Purview.Logging.SourceGenerator.CSharp9" Version="0.9.3-prerelease" />
 </ItemGroup>
 ```
 
-*Found an issue using C# 9 that requires a different build of the generator. You may have better luck, but if you encounter issues with `Microsoft.CodeAnalysis.CSharp` version 4 missing then using the VS2019 version.* 
+*Found an issue using C# 9 in Visual Studio that required a different build of the generator. You may have better luck, but if you encounter issues with `Microsoft.CodeAnalysis.CSharp` version 4 missing then using the CSharp9 version instead.* 
 
 Currently you must have the `Microsoft.Extensions.DepdencyInjection` (if generation of DI is left as the default of `true`) and `Microsoft.Extensions.Logging` (version 5 or higher) packages installed along with the `Purview.Logging.SourceGenerator` package in your target project.
 
 ## Log Event Configuration
 
-By default each assembly where a logging interface is defined get two attributes generated that can be used to control the log event:
+By default each assembly where a logging interface is defined get two internal attributes generated that can be used to control the log event:
 
-1. `DefaultLogEventSettingsAttribute` - use on an assembly or interface to control generation settings, such as the default log level for all events. If declared on both, the interface takes precedence over default values.
+1. `DefaultLogEventSettingsAttribute` - use on an assembly or interface to control generation settings, such as the default log level for all events (per-assembly or per-interface). If declared on both, the interface takes precedence.
 2. `LogEventAttributte` - use to configure individual log events, including their Event Id, Event Name, Log Level and Message Template. If the level is specified, this will overwrite any defined by the `DefaultLogEventSettingsAttribute`.
 
-If no log level is defined (via the `LogEventAttribute`) and the method contains an `Exception` parameter, the level is automatically set to `Error` regardless of other defaults. 
+If no log level is defined (via the `LogEventAttribute`) and the method contains an `Exception` parameter, the level is automatically set to `Error` regardless of other defaults.
 
-The exception is also passed to the `Exception` parameter of the `Define` method from the `LoggerMessage` class. 
+The exception is also passed to the `Exception` parameter of the `Define` method from the `LoggerMessage` class.
 
 ## Extensions
 
@@ -288,15 +288,31 @@ The history of this project was a little interesting, I've been doing this for y
 
 ### Unsupported
 
-Currently unsupported are logging interfaces nested in classes, i.e.:
+Currently unsupported:
+
+Logging interfaces nested in classes, i.e.:
 
 ```c#
 sealed class ClassWithNestedLogInterface
 {
-  interface INestedLogger
-  {
-    void Test();
-  }
+    interface INestedLogger
+    {
+        void TestLog();
+    }
 }
 ```
 
+Inherited logging interfaces, i.e.
+
+```c#
+public interface ISuperLogger : IBaseLogger
+{
+    void SuperLog();
+}
+
+public interface IBaseLogger
+{
+    void BaseLog();
+}
+
+```
