@@ -1,34 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net462;net472;net48;net5.0;net6.0</TargetFrameworks>
-	</PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net6.0</TargetFrameworks>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
 
-	<ItemGroup>
-	  <Compile Remove="BenchmarkDotNet.Artifacts\**" />
-	  <EmbeddedResource Remove="BenchmarkDotNet.Artifacts\**" />
-	  <None Remove="BenchmarkDotNet.Artifacts\**" />
-	</ItemGroup>
+  <ItemGroup>
+    <Compile Remove="BenchmarkDotNet.Artifacts\**" />
+    <EmbeddedResource Remove="BenchmarkDotNet.Artifacts\**" />
+    <None Remove="BenchmarkDotNet.Artifacts\**" />
+  </ItemGroup>
 
-	<ItemGroup Label=".NET 5 / .NET Framework 4.7.2/ .NET Framework 4.6.2 Dependencies" Condition="'$(TargetFramework)' == 'net5.0' OR '$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net462'">
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
-	</ItemGroup>
+  <ItemGroup Label=".NET 5 / .NET Framework 4.7.2/ .NET Framework 4.6.2 Dependencies" Condition="'$(TargetFramework)' == 'net5.0' OR '$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net462'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
+  </ItemGroup>
 
-	<ItemGroup Label=".NET 6 / .NET Framework 4.8 Dependencies" Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'net48'">
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
-	</ItemGroup>
+  <ItemGroup Label=".NET 6 / .NET Framework 4.8 Dependencies" Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'net48'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Purview.Logging.SourceGenerator\Purview.Logging.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  <ItemGroup>
+    <ProjectReference Include="..\Purview.Logging.SourceGenerator\Purview.Logging.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 
-		<!--<PackageReference Include="Purview.Logging.SourceGenerator" Version="$(Version)" />-->
-	</ItemGroup>
+    <!--<PackageReference Include="Purview.Logging.SourceGenerator" Version="$(Version)" />-->
+  </ItemGroup>
 
 </Project>
