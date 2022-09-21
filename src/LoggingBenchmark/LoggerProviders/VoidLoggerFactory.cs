@@ -11,9 +11,6 @@ public class VoidLoggerFactory : ILoggerFactory
 {
 	public VoidLoggerFactory() { }
 
-	/// <summary>
-	/// Returns the shared instance of <see cref="NullLoggerFactory"/>.
-	/// </summary>
 	public static readonly VoidLoggerFactory Instance = new VoidLoggerFactory();
 
 	public void AddProvider(ILoggerProvider provider)
