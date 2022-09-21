@@ -80,7 +80,7 @@ sealed class LoggerMessageBasedGenerator : ISourceGenerator
 		// We're disabling CA1812 here - https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1812
 		// which warns us about non-instantiated classes. It's used via DI.
 
-		StringBuilder builder = new();
+		StringBuilder builder = new(Helpers.DefaultStringBuilderCapacity);
 		builder
 			.AppendLine("#nullable disable")
 			.AppendLine("#pragma warning disable CS8625")

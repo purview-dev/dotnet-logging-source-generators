@@ -19,7 +19,7 @@ sealed class DependencyInjectionMethodEmitter
 
 	public string Generate()
 	{
-		StringBuilder builder = new();
+		StringBuilder builder = new(Helpers.DefaultStringBuilderCapacity);
 
 		// Start namespace (full-scoped, not file-scoped).
 		builder
