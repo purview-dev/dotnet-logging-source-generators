@@ -1,25 +1,22 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace LoggingBenchmark.Services;
 
-sealed class InterfaceBasedLoggerMessageService : ServiceBase
+sealed class InterfaceBasedLoggerMessageService
 {
-	override protected void Register(IServiceCollection services)
-		=> services.AddLog<IServiceLogger>();
+	readonly IServiceLogger _logger;
 
-	public void Execute()
+	public InterfaceBasedLoggerMessageService(IServiceLogger logger)
 	{
-		using (Logger.TestStart(DateTimeOffset.UtcNow))
-		{
-			Logger.TestTrace("A Trace Parameter", 1);
-			Logger.TestDebug("A Debug Parameter", 11);
-			Logger.TestInformation("A Information Parameter", 111);
-			Logger.TestWarning("A Warning Parameter", 1111);
-			Logger.TestError("A Error Parameter", 11111);
-			Logger.TestCritical("A Critical Parameter", 11111);
-		}
+		_logger = logger;
 	}
 
-	IServiceLogger Logger
-		=> ServiceProvider.GetRequiredService<IServiceLogger>();
+	public void Execute(string stringParam, int intParam)
+	{
+		using (_logger.TestStart(DateTimeOffset.UtcNow))
+		{
+			_logger.TestError(stringParam, intParam);
+		}
+	}
 }

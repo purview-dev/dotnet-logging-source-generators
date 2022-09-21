@@ -13,30 +13,22 @@ namespace LoggingBenchmark.Services;
 
 public partial class LoggerViaLoggerMessageAttributeService
 {
-	readonly ILogger _logger;
+	readonly ILogger<LoggerViaLoggerMessageAttributeService> _logger;
 
-	public LoggerViaLoggerMessageAttributeService(ILogger logger)
+	public LoggerViaLoggerMessageAttributeService(ILogger<LoggerViaLoggerMessageAttributeService> logger)
 	{
 		_logger = logger;
 	}
 
-	[LoggerMessage(Level = LogLevel.Trace)]
-	public partial void TestTrace(string? stringParameter, int? intParameter);
+	public void Execute(string stringParam, int intParam)
+	{
+		_logger.TestStart(DateTimeOffset.UtcNow);
+		_logger.TestError(stringParam, intParam);
+	}
 
-	[LoggerMessage(Level = LogLevel.Debug)]
-	public partial void TestDebug(string? stringParameter, int? intParameter);
-
-	[LoggerMessage(Level = LogLevel.Information)]
-	public partial void TestInformation(string? stringParameter, int? intParameter);
-
-	[LoggerMessage(Level = LogLevel.Warning)]
-	public partial void TestWarning(string? stringParameter, int? intParameter);
 
 	[LoggerMessage(Level = LogLevel.Error)]
 	public partial void TestError(string? stringParameter, int? intParameter);
-
-	[LoggerMessage(Level = LogLevel.Critical)]
-	public partial void TestCritical(string? stringParameter, int? intParameter);
 
 	[LoggerMessage(Level = LogLevel.Information, Message = "TestStart => Started: {Started}")]
 	public partial void TestStart(DateTimeOffset started);
