@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace LoggingBenchmark.Services;
+namespace LoggingBenchmark.Services.Extensions;
 
 static class ILoggerExtensions
 {

@@ -10,7 +10,6 @@ namespace LoggingBenchmark.Services;
 
 // otherwise we get warning that eventId is -1 for every log
 #pragma warning disable SYSLIB1006
-
 public partial class LoggerViaLoggerMessageAttributeService
 {
 	readonly ILogger<LoggerViaLoggerMessageAttributeService> _logger;
@@ -20,18 +19,17 @@ public partial class LoggerViaLoggerMessageAttributeService
 		_logger = logger;
 	}
 
-	public void Execute(string stringParam, int intParam)
-	{
-		_logger.TestStart(DateTimeOffset.UtcNow);
-		_logger.TestError(stringParam, intParam);
-	}
+	[LoggerMessage(Level = LogLevel.Error, Message = LoggingBenchmarkConsts.TestErrorMessage)]
+	public partial void TestError(string? stringParam, int? intParam);
 
 
-	[LoggerMessage(Level = LogLevel.Error)]
-	public partial void TestError(string? stringParameter, int? intParameter);
+	//[LoggerMessage(Level = LogLevel.Information, Message = "TestStart => Started: {Started}")]
+	//public partial IDisposable TestStart(DateTimeOffset started);
 
-	[LoggerMessage(Level = LogLevel.Information, Message = "TestStart => Started: {Started}")]
-	public partial void TestStart(DateTimeOffset started);
+	// with LoggerMessageAttribute you can't define method which will return IDisposable
+	// for the proper testing we will use LoggerMessage static class, as in the end LoggerMessageAttribute produces it
+	readonly static Func<ILogger, DateTimeOffset, IDisposable> _testStart = LoggerMessage.DefineScope<DateTimeOffset>(LoggingBenchmarkConsts.TestStartMessage);
+
+	public IDisposable TestStart(DateTimeOffset started) => _testStart(_logger, started);
 }
-
 #pragma warning restore SYSLIB1006

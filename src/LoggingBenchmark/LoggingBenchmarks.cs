@@ -19,7 +19,7 @@ public class LoggingBenchmarks
 	DirectILoggerService _directILoggerService = default!;
 	ExtensionBasedLoggerMessageService _extensionLoggerMessageService = default!;
 	InterfaceBasedLoggerMessageService _interfaceLoggerMessageService = default!;
-	LoggerViaLoggerMessageAttributeService _loggerMessageServiceViaLoggerMessageAttribute = default!;
+	LoggerViaLoggerMessageAttributeServiceTest _loggerMessageServiceViaLoggerMessageAttribute = default!;
 
 	[Params(10)]
 	public int Iterations { get; set; }
@@ -55,13 +55,14 @@ public class LoggingBenchmarks
 		services.AddSingleton<InterfaceBasedLoggerMessageService>();
 
 		services.AddSingleton<LoggerViaLoggerMessageAttributeService>();
+		services.AddSingleton<LoggerViaLoggerMessageAttributeServiceTest>();
 
 		var container = services.BuildServiceProvider();
 
 		_directILoggerService = container.GetRequiredService<DirectILoggerService>();
 		_extensionLoggerMessageService = container.GetRequiredService<ExtensionBasedLoggerMessageService>();
 		_interfaceLoggerMessageService = container.GetRequiredService<InterfaceBasedLoggerMessageService>();
-		_loggerMessageServiceViaLoggerMessageAttribute = container.GetRequiredService<LoggerViaLoggerMessageAttributeService>();
+		_loggerMessageServiceViaLoggerMessageAttribute = container.GetRequiredService<LoggerViaLoggerMessageAttributeServiceTest>();
 	}
 
 	[Benchmark(Baseline = true, Description = "Direct:ILogger<T>")]
