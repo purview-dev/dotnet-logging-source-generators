@@ -21,7 +21,7 @@ public class LoggingBenchmarks
 	InterfaceBasedLoggerMessageService _interfaceLoggerMessageService = default!;
 	LoggerViaLoggerMessageAttributeServiceTest _loggerMessageServiceViaLoggerMessageAttribute = default!;
 
-	[Params(10)]
+	[Params(10, 100)]
 	public int Iterations { get; set; }
 
 	[ParamsAllValues]
@@ -32,8 +32,7 @@ public class LoggingBenchmarks
 	{
 		var services = new ServiceCollection();
 
-		// the only diffrence between NullLogger and VoidLogger is that for log IsEnabled will be always returning true.
-		// implemntation between them is the same
+		// the only diffrence between NullLogger and VoidLogger is that for VoidLogger.IsEnabled will be always returning true.
 		if (IsLogEnabled)
 		{
 			services.AddSingleton<ILoggerFactory, VoidLoggerFactory>();
