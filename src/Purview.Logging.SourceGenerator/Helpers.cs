@@ -23,6 +23,7 @@ static class Helpers
 	public const string PurviewLogEventAttributeNameWithSuffix = $"{PurviewLogEventAttributeName}Attribute";
 
 	public const int MaximumLoggerDefineParameters = 6;
+	public const int DefaultStringBuilderCapacity = 1024;
 
 	readonly static public string IDisposableType = typeof(IDisposable).FullName;
 

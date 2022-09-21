@@ -83,7 +83,7 @@ sealed partial class LogMethodEmitter
 
 		var logSettings = LoggerSettingsParser.GetLogSettings(_context, _methodDeclaration, cancellationToken);
 
-		StringBuilder builder = new();
+		StringBuilder builder = new(Helpers.DefaultStringBuilderCapacity);
 
 		// Build logger message.
 		var logActionName = methodName;

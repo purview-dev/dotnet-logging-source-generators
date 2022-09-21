@@ -3,21 +3,20 @@ using Microsoft.Extensions.Logging;
 
 namespace LoggingBenchmark.Services;
 
-sealed class DirectILoggerService : ServiceBase
+sealed class DirectILoggerService
 {
-	public void Execute()
+	readonly ILogger<DirectILoggerService> _logger;
+
+	public DirectILoggerService(ILogger<DirectILoggerService> logger)
 	{
-		using (Logger.BeginScope("TestStart => Started: {Started}", DateTimeOffset.UtcNow))
-		{
-			Logger.LogTrace("TestTrace: {StringParam}, {IntParam}", "A Trace Parameter", 1);
-			Logger.LogDebug("TestDebug: {StringParam}, {IntParam}", "A Debug Parameter", 11);
-			Logger.LogInformation("LogInformation: {StringParam}, {IntParam}", "A Information Parameter", 111);
-			Logger.LogWarning("LogWarning: {StringParam}, {IntParam}", "A Warning Parameter", 1111);
-			Logger.LogError("LogError: {StringParam}, {IntParam}", "A Error Parameter", 11111);
-			Logger.LogCritical("LogCritical: {StringParam}, {IntParam}", "A Critical Parameter", 111111);
-		}
+		_logger = logger;
 	}
 
-	ILogger<DirectILoggerService> Logger
-		=> ServiceProvider.GetRequiredService<ILogger<DirectILoggerService>>();
+	public void Execute(string stringParam, int intParam)
+	{
+		using (_logger.BeginScope(LoggingBenchmarkConsts.TestStartMessage, DateTimeOffset.UtcNow))
+		{
+			_logger.LogError(LoggingBenchmarkConsts.TestErrorMessage, stringParam, intParam);
+		}
+	}
 }
