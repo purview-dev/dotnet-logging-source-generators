@@ -183,7 +183,9 @@ namespace LoggerTest
 					else
 					{
 #if NETCOREAPP3_1 || NET462
-					a.AddConsole(a => a.IncludeScopes = true);
+#pragma warning disable CS0618
+						a.AddConsole(a => a.IncludeScopes = true);
+#pragma warning restore CS0618
 #else
 					a.AddSimpleConsole(a =>
 					{
@@ -192,7 +194,7 @@ namespace LoggerTest
 					});
 #endif
 
-					a.SetMinimumLevel(LogLevel.Trace);
+						a.SetMinimumLevel(LogLevel.Trace);
 					}
 				})
 				.AddLog<IFileScopedNSTestLogger>()

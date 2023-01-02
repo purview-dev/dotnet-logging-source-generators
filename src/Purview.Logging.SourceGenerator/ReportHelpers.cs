@@ -7,9 +7,9 @@ static class ReportHelpers
 {
 	const string _category = "Purview.Logging";
 
-	static public void ReportUnableToDetermineExceptionParameter(this GeneratorExecutionContext context, Location location, int methodParameterCount, string exceptionParameterName)
+	static public void ReportUnableToDetermineExceptionParameter(Action<Diagnostic> reportDiagnostic, Location location, int methodParameterCount, string exceptionParameterName)
 	{
-		context.ReportDiagnostic(Diagnostic.Create(
+		reportDiagnostic(Diagnostic.Create(
 			new DiagnosticDescriptor(
 				GenerateId(1),
 				"Unable to determine exception parameter",
@@ -22,9 +22,9 @@ static class ReportHelpers
 		);
 	}
 
-	static public void ReportInvalidLogMethodReturnType(this GeneratorExecutionContext context, MethodDeclarationSyntax methodDeclarationSyntax)
+	static public void ReportInvalidLogMethodReturnType(Action<Diagnostic> reportDiagnostic, MethodDeclarationSyntax methodDeclarationSyntax)
 	{
-		context.ReportDiagnostic(Diagnostic.Create(
+		reportDiagnostic(Diagnostic.Create(
 			new DiagnosticDescriptor(
 				GenerateId(2),
 				"Invalid log method return type.",
@@ -37,9 +37,9 @@ static class ReportHelpers
 		);
 	}
 
-	static public void ReportPropertyExistsOnLoggerInterface(PropertyDeclarationSyntax propertyDeclaration, GeneratorExecutionContext context)
+	static public void ReportPropertyExistsOnLoggerInterface(Action<Diagnostic> reportDiagnostic, PropertyDeclarationSyntax propertyDeclaration)
 	{
-		context.ReportDiagnostic(Diagnostic.Create(
+		reportDiagnostic(Diagnostic.Create(
 			new DiagnosticDescriptor(
 				GenerateId(3),
 				"Properties are not valid on logger interfaces.",
@@ -52,9 +52,9 @@ static class ReportHelpers
 		);
 	}
 
-	static public void ReportMaximumNumberOfParmaetersExceeded(this GeneratorExecutionContext context, Location location, string methodName, int parameterCount)
+	static public void ReportMaximumNumberOfParmaetersExceeded(Action<Diagnostic> reportDiagnostic, Location location, string methodName, int parameterCount)
 	{
-		context.ReportDiagnostic(Diagnostic.Create(
+		reportDiagnostic(Diagnostic.Create(
 			new DiagnosticDescriptor(
 				GenerateId(4),
 				"Maximum number of parameters exceeded.",
@@ -67,9 +67,9 @@ static class ReportHelpers
 		);
 	}
 
-	static public void ReportNoLogEventsGenerated(GeneratorExecutionContext context, InterfaceDeclarationSyntax interfaceDeclaration)
+	static public void ReportNoLogEventsGenerated(Action<Diagnostic> reportDiagnostic, InterfaceDeclarationSyntax interfaceDeclaration)
 	{
-		context.ReportDiagnostic(Diagnostic.Create(
+		reportDiagnostic(Diagnostic.Create(
 			new DiagnosticDescriptor(
 				GenerateId(5),
 				"No logging events were generated.",

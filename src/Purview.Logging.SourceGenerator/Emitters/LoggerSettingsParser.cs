@@ -6,16 +6,16 @@ namespace Purview.Logging.SourceGenerator.Emitters;
 
 static class LoggerSettingsParser
 {
-	static public LoggerSetttings? GetLogSettings(GeneratorExecutionContext context, MethodDeclarationSyntax methodDeclarationSyntax, CancellationToken cancellationToken = default)
+	static public LoggerSetttings? GetLogSettings(Compilation compilation, MethodDeclarationSyntax methodDeclarationSyntax, CancellationToken cancellationToken = default)
 	{
-		var logEventAttribute = Helpers.GetAttributeSymbol(Helpers.PurviewLogEventAttributeNameWithSuffix, context, cancellationToken);
+		var logEventAttribute = Helpers.GetAttributeSymbol(Helpers.PurviewLogEventAttributeNameWithSuffix, compilation, cancellationToken);
 		if (logEventAttribute == null)
 		{
 			// No attribute defined.
 			return null;
 		}
 
-		var model = context.Compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree);
+		var model = compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree);
 		var declaredSymbol = model.GetDeclaredSymbol(methodDeclarationSyntax, cancellationToken: cancellationToken);
 		if (declaredSymbol == null)
 		{

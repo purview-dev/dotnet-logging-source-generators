@@ -1,28 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+    <IsRoslynComponent>true</IsRoslynComponent>
+  </PropertyGroup>
 
-	<PropertyGroup>
-		<Title>Purview Logging Source Generator</Title>
-		<Description>Generates LoggerMessage-based High Performance log from Interfaces.</Description>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PacakgeId>Purview.Logging.SourceGenerator</PacakgeId>
-	</PropertyGroup>
+  <PropertyGroup>
+    <Title>Purview Logging Source Generator</Title>
+    <Description>Generates LoggerMessage-based High Performance log from Interfaces.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PacakgeId>Purview.Logging.SourceGenerator</PacakgeId>
+  </PropertyGroup>
 
-	<ItemGroup>
-	  <Compile Remove="bin\**" />
-	  <EmbeddedResource Remove="bin\**" />
-	  <None Remove="bin\**" />
-	</ItemGroup>
+  <ItemGroup>
+    <Compile Remove="bin\**" />
+    <EmbeddedResource Remove="bin\**" />
+    <None Remove="bin\**" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" PrivateAssets="all" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" PrivateAssets="all" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
-	
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
 </Project>

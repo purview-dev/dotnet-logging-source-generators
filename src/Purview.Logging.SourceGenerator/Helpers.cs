@@ -192,12 +192,12 @@ namespace {MSLoggingNamespace}
 #nullable restore
 ";
 
-	static public INamedTypeSymbol? GetAttributeSymbol(string attributeTypeName, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
+	static public INamedTypeSymbol? GetAttributeSymbol(string attributeTypeName, Compilation compilation, CancellationToken cancellationToken = default)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
 		// If we include the attributes in all referenced assemblies, we don't need to dynamically parse it...
-		return context.Compilation.GetTypeByMetadataName($"{MSLoggingNamespace}.{attributeTypeName}");
+		return compilation.GetTypeByMetadataName($"{MSLoggingNamespace}.{attributeTypeName}");
 	}
 
 	static public (bool hasNamespace, bool isFileScoped, string? @namespace) GetNamespaceFrom(SyntaxNode syntaxNode)

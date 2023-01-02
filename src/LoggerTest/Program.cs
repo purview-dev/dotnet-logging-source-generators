@@ -182,7 +182,9 @@ sealed class Program
 				else
 				{
 #if NETCOREAPP3_1 || NET462
+#pragma warning disable CS0618
 					a.AddConsole(a => a.IncludeScopes = true);
+#pragma warning restore CS0618
 #else
 					a.AddSimpleConsole(a =>
 					{
