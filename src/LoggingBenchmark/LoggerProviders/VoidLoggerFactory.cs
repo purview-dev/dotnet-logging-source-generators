@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace LoggingBenchmark.LoggerProviders;
 
-public class VoidLoggerFactory : ILoggerFactory
+sealed public class VoidLoggerFactory : ILoggerFactory
 {
 	public VoidLoggerFactory() { }
 

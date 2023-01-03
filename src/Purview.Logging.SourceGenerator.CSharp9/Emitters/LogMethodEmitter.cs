@@ -12,28 +12,26 @@ sealed partial class LogMethodEmitter
 	readonly static string _exceptionType = typeof(Exception).FullName;
 	readonly string _loggerName;
 	readonly MethodDeclarationSyntax _methodDeclaration;
-	readonly Compilation _compilation;
+	readonly GeneratorExecutionContext _context;
 	readonly int _methodIndex;
 	readonly DefaultLoggerSettings _defaultLoggerSettings;
-	readonly Action<Diagnostic> _reportDiagnostic;
 
 	readonly Lazy<bool> _hasLogOptions;
 
-	public LogMethodEmitter(string loggerName, MethodDeclarationSyntax methodDeclaration, Compilation compilation, int methodIndex, DefaultLoggerSettings defaultLoggerSettings, Action<Diagnostic> reportDiagnostic)
+	public LogMethodEmitter(string loggerName, MethodDeclarationSyntax methodDeclaration, GeneratorExecutionContext context, int methodIndex, DefaultLoggerSettings defaultLoggerSettings)
 	{
 		_loggerName = loggerName;
 		_methodDeclaration = methodDeclaration;
-		_compilation = compilation;
+		_context = context;
 		_methodIndex = methodIndex;
 		_defaultLoggerSettings = defaultLoggerSettings;
-		_reportDiagnostic = reportDiagnostic;
 
 		_hasLogOptions = new(HasLogOptionsDefined);
 	}
 
 	bool HasLogOptionsDefined()
 	{
-		return _compilation.GetTypeByMetadataName($"{Helpers.MSLoggingNamespace}.LogDefineOptions") != null;
+		return _context.Compilation.GetTypeByMetadataName($"{Helpers.MSLoggingNamespace}.LogDefineOptions") != null;
 	}
 
 	public (string? source, bool isNullable) Generate(CancellationToken cancellationToken = default)
@@ -70,7 +68,7 @@ sealed partial class LogMethodEmitter
 			paramsWithoutException = paramsWithoutException.Where(m => m.Name != exceptionData.Value.Name).ToArray();
 			if (parameterData.Count == paramsWithoutException.Length)
 			{
-				ReportHelpers.ReportUnableToDetermineExceptionParameter(_reportDiagnostic, _methodDeclaration.GetLocation(), parameterData.Count, exceptionData.Value.Name);
+				_context.ReportUnableToDetermineExceptionParameter(_methodDeclaration.GetLocation(), parameterData.Count, exceptionData.Value.Name);
 
 				return (null, false);
 			}
@@ -78,12 +76,12 @@ sealed partial class LogMethodEmitter
 
 		if (paramsWithoutException.Length > Helpers.MaximumLoggerDefineParameters)
 		{
-			ReportHelpers.ReportMaximumNumberOfParmaetersExceeded(_reportDiagnostic, _methodDeclaration.GetLocation(), methodName, paramsWithoutException.Length);
+			_context.ReportMaximumNumberOfParmaetersExceeded(_methodDeclaration.GetLocation(), methodName, paramsWithoutException.Length);
 
 			return (null, false);
 		}
 
-		var logSettings = LoggerSettingsParser.GetLogSettings(_compilation, _methodDeclaration, cancellationToken);
+		var logSettings = LoggerSettingsParser.GetLogSettings(_context, _methodDeclaration, cancellationToken);
 
 		StringBuilder builder = new(Helpers.DefaultStringBuilderCapacity);
 
@@ -98,7 +96,7 @@ sealed partial class LogMethodEmitter
 		var actionParams = new[] { Helpers.MSLoggingILoggerNamespaceAndTypeName }
 			.Concat(methodParams)
 			.Concat(new[] { methodReturnType == MethodReturnType.Void ? _exceptionType : Helpers.IDisposableType });
-		//.Concat(new[] { methodReturnType == MethodReturnType.Void ? $"{_exceptionType}?" : Helpers.IDisposableType }); // Cause' nullable hell.
+			//.Concat(new[] { methodReturnType == MethodReturnType.Void ? $"{_exceptionType}?" : Helpers.IDisposableType }); // Cause' nullable hell.
 
 		// Define the field name - we'll append the method index, just to avoid any clashes.
 		// i.e. LogAThing(int) and LogAThing(string) would create the same field name.
@@ -166,7 +164,7 @@ sealed partial class LogMethodEmitter
 
 		if (_methodDeclaration.ReturnType.ToString().EndsWith(nameof(IDisposable), StringComparison.Ordinal))
 		{
-			var semanticModel = _compilation.GetSemanticModel(_methodDeclaration.ReturnType.SyntaxTree);
+			var semanticModel = _context.Compilation.GetSemanticModel(_methodDeclaration.ReturnType.SyntaxTree);
 			var typeInfo = semanticModel.GetTypeInfo(_methodDeclaration.ReturnType);
 
 			var isIDiposable = typeInfo.Type?.ToString() == Helpers.IDisposableType;
@@ -174,7 +172,7 @@ sealed partial class LogMethodEmitter
 				return MethodReturnType.Scope;
 		}
 
-		ReportHelpers.ReportInvalidLogMethodReturnType(_reportDiagnostic, _methodDeclaration);
+		_context.ReportInvalidLogMethodReturnType(_methodDeclaration);
 
 		return MethodReturnType.None;
 	}
@@ -186,7 +184,7 @@ sealed partial class LogMethodEmitter
 
 		var parameterTypeSync = parameterSyntax.Type;
 
-		var semanticModel = _compilation.GetSemanticModel(parameterTypeSync.SyntaxTree);
+		var semanticModel = _context.Compilation.GetSemanticModel(parameterTypeSync.SyntaxTree);
 		var typeInfo = semanticModel.GetTypeInfo(parameterTypeSync);
 
 		var parameterType = typeInfo.Type?.ToString();

@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Text;
+﻿using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,50 +7,44 @@ using Purview.Logging.SourceGenerator.Emitters;
 namespace Purview.Logging.SourceGenerator;
 
 [Generator]
-sealed class LoggerMessageBasedGenerator : IIncrementalGenerator
+sealed class LoggerMessageBasedGenerator : ISourceGenerator
 {
 	DefaultLoggerSettings _defaultLoggerSettings = new();
 
-	public void Initialize(IncrementalGeneratorInitializationContext context)
+	public void Initialize(GeneratorInitializationContext context)
 	{
-		context.RegisterPostInitializationOutput(c => c.AddSource("LogAttributes.g.cs", Helpers.AttributeDefinitions));
-
-		var intefraceDeclarations = context.SyntaxProvider
-			.CreateSyntaxProvider(
-				predicate: static (syntaxNode, _) => syntaxNode is InterfaceDeclarationSyntax,
-				transform: GetSemanticTargetForGeneration
-			)
-			.Where(c => c is not null);
-
-		IncrementalValueProvider<(Compilation, ImmutableArray<InterfaceDeclarationSyntax>)> compilationAndInterfaces =
-				context.CompilationProvider.Combine(intefraceDeclarations.Collect())!;
-
-		context.RegisterSourceOutput(compilationAndInterfaces, (spc, source) => Execute(source.Item1, source.Item2, spc));
+		context.RegisterForPostInitialization(context => context.AddSource("LogAttributes.g.cs", Helpers.AttributeDefinitions));
+		context.RegisterForSyntaxNotifications(() => new LoggerMessageSyntaxReceiver());
 	}
 
-	private void Execute(Compilation compilation, ImmutableArray<InterfaceDeclarationSyntax> interfaces, SourceProductionContext context)
+	public void Execute(GeneratorExecutionContext context)
 	{
-		if (interfaces.IsDefaultOrEmpty)
+		var receiver = context.SyntaxReceiver as LoggerMessageSyntaxReceiver;
+		if ((receiver?.CandidateInterfaces?.Count() ?? 0) == 0)
+		{
+			// nothing to do yet
 			return;
+		}
 
-		var defaultLogLevelAttribute = compilation.Assembly
+		var defaultLogLevelAttribute = context.Compilation.Assembly
 			.GetAttributes()
-			.FirstOrDefault(static attributeData =>
+			.FirstOrDefault(attributeData =>
 			{
-				var name = attributeData.AttributeClass?.ToDisplayString();
-				return name == $"{Helpers.MSLoggingNamespace}.{Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix}";
+				var name = attributeData.AttributeClass?.ToString();
+				return name == $"{Helpers.MSLoggingNamespace}.{Helpers.PurviewDefaultLogEventSettingsAttributeName}"
+					|| name == $"{Helpers.MSLoggingNamespace}.{Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix}";
 			});
 
 		if (defaultLogLevelAttribute != null)
 			_defaultLoggerSettings = GetDefaultLogEventValues(defaultLogLevelAttribute, context.CancellationToken);
 
-		foreach (var interfaceDeclaration in interfaces)
+		foreach (var interfaceDeclaration in receiver!.CandidateInterfaces!)
 		{
 			// Default is internal, so only check to see if public
 			// is on the interface.
 			var isInterfacePublic = interfaceDeclaration.Modifiers.Any(SyntaxKind.PublicKeyword);
 
-			var source = GenerateSource(interfaceDeclaration, compilation, context.ReportDiagnostic);
+			var source = GenerateSource(interfaceDeclaration, context);
 
 			// Using a hash for the filename as there was some issues
 			// with the length of filename when using ns + interface
@@ -78,25 +71,11 @@ sealed class LoggerMessageBasedGenerator : IIncrementalGenerator
 		}
 	}
 
-	private InterfaceDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context, CancellationToken cancellationToken)
-	{
-		var node = (InterfaceDeclarationSyntax)context.Node;
-
-		if (_suffixes.Any(suffix => node.Identifier.ValueText.EndsWith(suffix, StringComparison.Ordinal)))
-		{
-			return node;
-		}
-
-		return null;
-	}
-
-	readonly static string[] _suffixes = new[] { "Log", "Logs", "Logger" };
-
-	(string source, string path, string interfaceName, string className, string? @namespace, DefaultLoggerSettings defaultLoggerSettings) GenerateSource(InterfaceDeclarationSyntax interfaceDeclaration, Compilation compilation, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken = default)
+	(string source, string path, string interfaceName, string className, string? @namespace, DefaultLoggerSettings defaultLoggerSettings) GenerateSource(InterfaceDeclarationSyntax interfaceDeclaration, GeneratorExecutionContext context, CancellationToken cancellationToken = default)
 	{
 		//System.Diagnostics.Debugger.Break();
 
-		var defaultInterfaceLogSettings = GetDefaultLogSettings(interfaceDeclaration, compilation, cancellationToken);
+		var defaultInterfaceLogSettings = GetDefaultLogSettings(interfaceDeclaration, context, cancellationToken);
 
 		// We're disabling CA1812 here - https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1812
 		// which warns us about non-instantiated classes. It's used via DI.
@@ -187,7 +166,7 @@ sealed class LoggerMessageBasedGenerator : IIncrementalGenerator
 			if (memberSyntax is PropertyDeclarationSyntax propertyDeclaration)
 			{
 				// WARNING
-				ReportHelpers.ReportPropertyExistsOnLoggerInterface(reportDiagnostic, propertyDeclaration);
+				ReportHelpers.ReportPropertyExistsOnLoggerInterface(propertyDeclaration, context);
 
 				// We implement it anyway, but only because we raise a warning and
 				// we don't want to stop compilation/ generation.
@@ -204,7 +183,7 @@ sealed class LoggerMessageBasedGenerator : IIncrementalGenerator
 
 			if (memberSyntax is MethodDeclarationSyntax method)
 			{
-				LogMethodEmitter emitter = new(loggerInterfaceName, method, compilation, memberIndex, defaultInterfaceLogSettings, reportDiagnostic);
+				LogMethodEmitter emitter = new(loggerInterfaceName, method, context, memberIndex, defaultInterfaceLogSettings);
 				var (source, _) = emitter.Generate(cancellationToken);
 				if (source == null)
 					continue;
@@ -219,7 +198,7 @@ sealed class LoggerMessageBasedGenerator : IIncrementalGenerator
 
 		if (!generatedLogEventMethod)
 		{
-			ReportHelpers.ReportNoLogEventsGenerated(reportDiagnostic, interfaceDeclaration);
+			ReportHelpers.ReportNoLogEventsGenerated(context, interfaceDeclaration);
 		}
 
 		// End class.
@@ -257,16 +236,16 @@ sealed class LoggerMessageBasedGenerator : IIncrementalGenerator
 		);
 	}
 
-	DefaultLoggerSettings GetDefaultLogSettings(InterfaceDeclarationSyntax interfaceSyntax, Compilation compilation, CancellationToken cancellationToken)
+	DefaultLoggerSettings GetDefaultLogSettings(InterfaceDeclarationSyntax interfaceSyntax, GeneratorExecutionContext context, CancellationToken cancellationToken)
 	{
-		var defaultLogEventAttribute = Helpers.GetAttributeSymbol(Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix, compilation, cancellationToken);
+		var defaultLogEventAttribute = Helpers.GetAttributeSymbol(Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix, context, cancellationToken);
 		if (defaultLogEventAttribute == null)
 		{
 			// Attribute not defined.
 			return _defaultLoggerSettings;
 		}
 
-		var model = compilation.GetSemanticModel(interfaceSyntax.SyntaxTree);
+		var model = context.Compilation.GetSemanticModel(interfaceSyntax.SyntaxTree);
 		var declaredSymbol = model.GetDeclaredSymbol(interfaceSyntax, cancellationToken: cancellationToken);
 		if (declaredSymbol == null)
 		{
@@ -277,7 +256,7 @@ sealed class LoggerMessageBasedGenerator : IIncrementalGenerator
 		var assemblyAttribute = declaredSymbol.ContainingAssembly.GetAttributes().SingleOrDefault(m =>
 			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeName ||
 			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix);
-
+		
 		var interfaceAttribute = declaredSymbol.GetAttributes().SingleOrDefault(m =>
 			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeName ||
 			m.AttributeClass?.Name == Helpers.PurviewDefaultLogEventSettingsAttributeNameWithSuffix);
