@@ -1,3 +1,7 @@
+# Depcreation Notice
+
+This project has been replaced by [Purview Telemetry Source Generator](https://github.com/purview-dev/purview-telemetry-sourcegenerator), which offers Activities, Logging and Metric generation.
+
 # Purview Logging Source Generator
 
 .NET Logging Source Generator, used for generating [LoggerMessage](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/loggermessage)-based High Performance logging from a custom interface.
