@@ -1,0 +1,45 @@
+# The purview.dev catalogue record for this project (ADR 0013 in purview-dev/purview-dev).
+# The site reads this file from the default branch of this repository, so the record
+# changes in the same pull request as the thing it describes.
+#
+# `$schema` is an editor hint and nothing more: the enforcing validation is the site's
+# loader, which `just check-projects` runs there.
+$schema: https://raw.githubusercontent.com/purview-dev/purview-dev/main/src/src/lib/manifest/schema.ts
+
+id: dotnet-logging-source-generators
+name: Logging Source Generators
+shortDescription: Early interface-based logging generation (archived).
+description: >-
+  The original experiment in interface-based logging generation for .NET.
+  Archived and superseded by the Purview Telemetry SourceGenerator, which
+  generates logging together with Activities and Metrics from the same
+  interfaces.
+origin: >-
+  This was the original exploration of interface-driven logging generation and established the
+  approach that later grew into the broader Telemetry SourceGenerator.
+useWhen: >-
+  Use it only when maintaining an existing dependency that cannot yet move to its successor.
+avoidWhen: >-
+  For new work, use Telemetry SourceGenerator instead; this project is archived and no longer
+  actively developed.
+repository: purview-dev/dotnet-logging-source-generators
+category: source-generation
+status: archived
+supersededBy: telemetry-sourcegenerator
+order: 80
+targetFrameworks:
+  - net6.0
+  - net7.0
+packages: []
+useCases:
+  - audience: developer
+    title: Move to the supported successor
+    scenario: >-
+      You depend on the original interface-based logging generator and want logging, activities, and
+      metrics generated together.
+    outcome: >-
+      Telemetry SourceGenerator generates logging alongside Activities and Metrics from the same
+      interfaces, with DI registration and multi-targeting.
+    evidence: >-
+      This project is archived and no longer developed; the successor covers a superset of its
+      behaviour from one interface.
